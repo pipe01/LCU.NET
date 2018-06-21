@@ -1,4 +1,4 @@
-﻿using LoL_API.API_Models;
+using LCU.NET.API_Models;
 using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Authenticators;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LoL_API
+namespace LCU.NET
 {
     public static class LeagueClient
     {

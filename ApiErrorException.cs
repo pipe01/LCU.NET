@@ -1,4 +1,4 @@
-﻿using LoL_API.API_Models;
+using LCU.NET.API_Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LoL_API
+namespace LCU.NET
 {
     public class ApiErrorException : Exception
     {

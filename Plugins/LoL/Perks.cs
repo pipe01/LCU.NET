@@ -1,4 +1,4 @@
-﻿using LoL_API.API_Models;
+using LCU.NET.API_Models;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -7,9 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static LoL_API.LeagueClient;
+using static LCU.NET.LeagueClient;
 
-namespace LoL_API.Plugins.LoL
+namespace LCU.NET.Plugins.LoL
 {
     public static class Perks
     {
