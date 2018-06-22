@@ -56,6 +56,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API Models\ErrorData.cs" />
+    <Compile Include="API Models\LolLobbyEligibilityRestriction.cs" />
+    <Compile Include="API Models\LolLobbyLobbyBotParams.cs" />
+    <Compile Include="API Models\LolLobbyLobbyChangeGameDto.cs" />
+    <Compile Include="API Models\LolLobbyLobbyCustomGameConfiguration.cs" />
+    <Compile Include="API Models\LolLobbyLobbyCustomGameLobby.cs" />
+    <Compile Include="API Models\LolLobbyLobbyDto.cs" />
+    <Compile Include="API Models\LolLobbyLobbyGameConfigDto.cs" />
+    <Compile Include="API Models\LolLobbyLobbyInvitationDto.cs" />
+    <Compile Include="API Models\LolLobbyLobbyMember.cs" />
+    <Compile Include="API Models\LolLobbyLobbyParticipantDto.cs" />
+    <Compile Include="API Models\LolLobbyLobbyPositionPreferences.cs" />
+    <Compile Include="API Models\LolLobbyQueueGameTypeConfig.cs" />
     <Compile Include="API Models\LolLoginLoginError.cs" />
     <Compile Include="API Models\LolLoginLoginQueue.cs" />
     <Compile Include="API Models\LolLoginLoginSession.cs" />
@@ -65,6 +77,7 @@
     <Compile Include="API Models\LolPerksPlayerInventory.cs" />
     <Compile Include="ApiErrorException.cs" />
     <Compile Include="LeagueClient.cs" />
+    <Compile Include="Plugins\LoL\Lobby.cs" />
     <Compile Include="Plugins\LoL\Login.cs" />
     <Compile Include="Plugins\LoL\Perks.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
