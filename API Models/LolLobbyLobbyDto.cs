@@ -1,4 +1,4 @@
-namespace LCU.NET
+namespace LCU.NET.API_Models
 {
     public class LolLobbyLobbyDto
     {

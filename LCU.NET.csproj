@@ -78,9 +78,11 @@
     <Compile Include="ApiErrorException.cs" />
     <Compile Include="LeagueClient.cs" />
     <Compile Include="Plugins\LoL\Lobby.cs" />
+    <Compile Include="Plugins\LoL\LobbyExt.cs" />
     <Compile Include="Plugins\LoL\Login.cs" />
     <Compile Include="Plugins\LoL\Perks.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
+    <Compile Include="Plugins\RiotClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

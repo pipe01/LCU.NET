@@ -84,7 +84,10 @@ namespace LCU.NET
             var resp = Client.Execute(BuildRequest(resource, method, data));
             CheckErrors(resp);
 
-            return JsonConvert.DeserializeObject<T>(resp.Content);
+            return JsonConvert.DeserializeObject<T>(resp.Content, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
         }
 
         internal static void MakeRequest(string resource, Method method, object data = null)
