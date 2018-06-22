@@ -16,19 +16,19 @@ namespace LCU.NET.Plugins.LoL
         /// Gets the current lobby.
         /// </summary>
         public static LolLobbyLobbyDto GetLobby()
-            => MakeRequest<LolLobbyLobbyDto>("/lol-lobby/v1/lobby", Method.GET);
+            => MakeRequest<LolLobbyLobbyDto>("/lol-lobby/v2/lobby", Method.GET);
 
         /// <summary>
         /// Creates a new lobby or changes the current one.
         /// </summary>
         /// <param name="lobbyChange">The lobby data.</param>
         public static LolLobbyLobbyDto PostLobby(LolLobbyLobbyChangeGameDto lobbyChange)
-            => MakeRequest<LolLobbyLobbyDto>("/lol-lobby/v1/lobby", Method.POST, lobbyChange);
+            => MakeRequest<LolLobbyLobbyDto>("/lol-lobby/v2/lobby", Method.POST, lobbyChange);
 
         /// <summary>
         /// Deletes (exits) the current lobby.
         /// </summary>
         public static void DeleteLobby()
-            => MakeRequest("/lol-lobby/v1/lobby", Method.DELETE);
+            => MakeRequest("/lol-lobby/v2/lobby", Method.DELETE);
     }
 }

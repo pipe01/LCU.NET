@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace LCU.NET
 {
@@ -17,6 +18,24 @@ namespace LCU.NET
         private static IDictionary<string, object> CacheDic = new Dictionary<string, object>();
 
         internal static RestClient Client;
+
+        /// <summary>
+        /// Tries to get the LoL installation path and init. The client must be running.
+        /// </summary>
+        public static bool TryInit()
+        {
+            var p = Process.GetProcessesByName("LeagueClient");
+
+            if (p.Length > 0)
+            {
+                //May lord forgive me
+                Init(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(p[0].MainModule.FileName), "../../../../../../")));
+
+                return true;
+            }
+
+            return false;
+        }
 
         public static void Init(string lolPath)
         {
@@ -62,10 +81,10 @@ namespace LCU.NET
 
         internal static T MakeRequest<T>(string resource, Method method, object data = null) where T : new()
         {
-            var resp = Client.Execute<T>(BuildRequest(resource, method, data));
+            var resp = Client.Execute(BuildRequest(resource, method, data));
             CheckErrors(resp);
 
-            return resp.Data;
+            return JsonConvert.DeserializeObject<T>(resp.Content);
         }
 
         internal static void MakeRequest(string resource, Method method, object data = null)
