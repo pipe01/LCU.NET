@@ -16,6 +16,7 @@ namespace LCU.NET
         private static int Port;
         private static int PID;
         private static IDictionary<string, object> CacheDic = new Dictionary<string, object>();
+        private static FileSystemWatcher Watcher;
 
         internal static RestClient Client;
 
@@ -49,6 +50,9 @@ namespace LCU.NET
             using (var stream = File.Open(lockFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 lockFile = new StreamReader(stream).ReadToEnd();
 
+            Watcher = new FileSystemWatcher(lolPath, "lockfile");
+            Watcher.Deleted += Watcher_Deleted;
+
             string[] parts = lockFile.Split(':');
 
             PID = int.Parse(parts[1]);
@@ -64,6 +68,13 @@ namespace LCU.NET
                 o.ServerCertificateValidationCallback = (a, b, c, d) => true;
 #pragma warning restore RCS1163 // Unused parameter.
             });
+
+            LeagueSocket.Init(Port, Token);
+        }
+
+        private static void Watcher_Deleted(object sender, FileSystemEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private static RestRequest BuildRequest(string resource, Method method, object data)
