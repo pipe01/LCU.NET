@@ -1,15 +1,25 @@
 using RestSharp;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace LCU.NET.Plugins
 {
     public static class PluginManager
     {
-        public static byte[] GetAsset(string plugin, string path)
-        {
-            var req = new RestRequest($"/{plugin}/assets/{path}", Method.GET);
-            var resp = LeagueClient.Client.Execute(req);
+        private static IDictionary<string, byte[]> Cache = new Dictionary<string, byte[]>();
 
-            return resp.RawBytes;
+        public static byte[] GetAsset(string plugin, string path, bool cache = true)
+        {
+            string uri = $"/{plugin}/assets/{path}";
+
+            if (!cache || !Cache.TryGetValue(uri, out var data))
+            {
+                var req = new RestRequest(uri, Method.GET);
+                var resp = LeagueClient.Client.Execute(req);
+                Cache[uri] = data = resp.RawBytes;
+            }
+
+            return data;
         }
     }
 }

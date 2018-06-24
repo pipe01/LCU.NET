@@ -14,21 +14,21 @@ namespace LCU.NET.Plugins.LoL
         /// <summary>
         /// Returns the current runes page.
         /// </summary>
-        public static LolPerksPerkPageResource GetCurrentPage()
-            => MakeRequest<LolPerksPerkPageResource>("/lol-perks/v1/currentpage", Method.GET);
+        [APIMethod("/lol-perks/v1/currentpage", Method.GET)]
+        public static LolPerksPerkPageResource GetCurrentPage() => MakeRequest<LolPerksPerkPageResource>();
 
         /// <summary>
         /// Sets the current rune page.
         /// </summary>
         /// <param name="id">The new page's ID.</param>
-        public static void PutCurrentPage(int id)
-            => MakeRequest("/lol-perks/v1/currentpage", Method.PUT, id);
+        [APIMethod("/lol-perks/v1/currentpage", Method.PUT)]
+        public static void PutCurrentPage(int id) => MakeRequest(id);
 
         /// <summary>
         /// Gets all the user's rune pages, including default ones.
         /// </summary>
-        public static LolPerksPerkPageResource[] GetPages()
-            => MakeRequest<List<LolPerksPerkPageResource>>("/lol-perks/v1/pages", Method.GET).ToArray();
+        [APIMethod("/lol-perks/v1/pages", Method.GET)]
+        public static LolPerksPerkPageResource[] GetPages() => MakeRequest<List<LolPerksPerkPageResource>>().ToArray();
 
         /// <summary>
         /// Gets a rune page by ID.
@@ -49,14 +49,15 @@ namespace LCU.NET.Plugins.LoL
         /// Creates a new rune page.
         /// </summary>
         /// <param name="page">The new page.</param>
+        [APIMethod("/lol-perks/v1/pages", Method.POST)]
         public static LolPerksPerkPageResource PostPage(LolPerksPerkPageResource page)
-            => MakeRequest<LolPerksPerkPageResource>("/lol-perks/v1/pages", Method.POST, page);
+            => MakeRequest<LolPerksPerkPageResource>(page);
 
         /// <summary>
         /// Gets a list of all the runes in LoL.
         /// </summary>
-        public static LolPerksPerkUIPerk[] GetPerks()
-            => Cache(() => MakeRequest<List<LolPerksPerkUIPerk>>("/lol-perks/v1/perks", Method.GET)).ToArray();
+        [APIMethod("/lol-perks/v1/perks", Method.GET, Cache = true)]
+        public static LolPerksPerkUIPerk[] GetPerks() => MakeRequest<List<LolPerksPerkUIPerk>>().ToArray();
 
         /// <summary>
         /// Gets a rune's icon.
@@ -76,7 +77,7 @@ namespace LCU.NET.Plugins.LoL
             }
         });
 
-        public static LolPerksPlayerInventory GetInventory()
-            => MakeRequest<LolPerksPlayerInventory>("/lol-perks/v1/inventory", Method.GET);
+        [APIMethod("/lol-perks/v1/inventory", Method.GET)]
+        public static LolPerksPlayerInventory GetInventory() => MakeRequest<LolPerksPlayerInventory>();
     }
 }

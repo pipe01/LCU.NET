@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace LCU.NET
 {
@@ -105,6 +106,36 @@ namespace LCU.NET
         {
             var resp = Client.Execute(BuildRequest(resource, method, data));
             CheckErrors(resp);
+        }
+
+        internal static T MakeRequest<T>(object data = null) where T : new()
+        {
+            var method = new StackFrame(1).GetMethod();
+            var apiAttr = method.GetCustomAttribute<APIMethodAttribute>();
+
+            if (apiAttr != null)
+            {
+                T act() => MakeRequest<T>(apiAttr.URI, apiAttr.Method, data);
+
+                return apiAttr.Cache ? Cache(act) : act();
+            }
+
+            throw new InvalidOperationException("This method can only be called from a method with an APIMethodAttribute!");
+        }
+        
+        internal static void MakeRequest(object data = null)
+        {
+            var method = new StackFrame(1).GetMethod();
+            var apiAttr = method.GetCustomAttribute<APIMethodAttribute>();
+
+            if (apiAttr != null)
+            {
+                MakeRequest(apiAttr.URI, apiAttr.Method, data);
+            }
+            else
+            {
+                throw new InvalidOperationException("This method can only be called from a method with an APIMethodAttribute!");
+            }
         }
 
         private static void CheckErrors(IRestResponse response)
