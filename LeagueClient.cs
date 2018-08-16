@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace LCU.NET
 {
@@ -102,9 +103,26 @@ namespace LCU.NET
             });
         }
 
+        internal static async Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null) where T : new()
+        {
+            var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data));
+            CheckErrors(resp);
+
+            return JsonConvert.DeserializeObject<T>(resp.Content, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
+        }
+
         internal static void MakeRequest(string resource, Method method, object data = null)
         {
             var resp = Client.Execute(BuildRequest(resource, method, data));
+            CheckErrors(resp);
+        }
+
+        internal static async Task MakeRequestAsync(string resource, Method method, object data = null)
+        {
+            var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data));
             CheckErrors(resp);
         }
 
@@ -122,7 +140,22 @@ namespace LCU.NET
 
             throw new InvalidOperationException("This method can only be called from a method with an APIMethodAttribute!");
         }
-        
+
+        internal static async Task<T> MakeRequestAsync<T>(object data = null) where T : new()
+        {
+            var method = new StackFrame(1).GetMethod();
+            var apiAttr = method.GetCustomAttribute<APIMethodAttribute>();
+
+            if (apiAttr != null)
+            {
+                Task<T> act() => MakeRequestAsync<T>(apiAttr.URI, apiAttr.Method, data);
+
+                return await (apiAttr.Cache ? Cache(act) : act());
+            }
+
+            throw new InvalidOperationException("This method can only be called from a method with an APIMethodAttribute!");
+        }
+
         internal static void MakeRequest(object data = null)
         {
             var method = new StackFrame(1).GetMethod();
@@ -131,6 +164,21 @@ namespace LCU.NET
             if (apiAttr != null)
             {
                 MakeRequest(apiAttr.URI, apiAttr.Method, data);
+            }
+            else
+            {
+                throw new InvalidOperationException("This method can only be called from a method with an APIMethodAttribute!");
+            }
+        }
+
+        internal static Task MakeRequestAsync(object data = null)
+        {
+            var method = new StackFrame(1).GetMethod();
+            var apiAttr = method.GetCustomAttribute<APIMethodAttribute>();
+
+            if (apiAttr != null)
+            {
+                return MakeRequestAsync(apiAttr.URI, apiAttr.Method, data);
             }
             else
             {
@@ -150,6 +198,9 @@ namespace LCU.NET
         internal static T Cache<T>(Func<T> action)
         {
             var method = new StackFrame(1).GetMethod();
+
+            if (method.DeclaringType == typeof(LeagueClient))
+                method = new StackFrame(2).GetMethod();
 
             return Cache(method.DeclaringType.Name + "." + method.Name, action);
         }

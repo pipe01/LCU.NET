@@ -63,6 +63,7 @@
     <Compile Include="API Models\LolChampSelectChampSelectAction.cs" />
     <Compile Include="API Models\LolChampSelectChampSelectBannedChampions.cs" />
     <Compile Include="API Models\LolChampSelectChampSelectChatRoomDetails.cs" />
+    <Compile Include="API Models\LolChampSelectChampSelectMySelection.cs" />
     <Compile Include="API Models\LolChampSelectChampSelectPlayerSelection.cs" />
     <Compile Include="API Models\LolChampSelectChampSelectSession.cs" />
     <Compile Include="API Models\LolChampSelectChampSelectTimer.cs" />
