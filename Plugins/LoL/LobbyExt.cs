@@ -9,10 +9,10 @@ namespace LCU.NET.Plugins.LoL
 {
     public static class LobbyExt
     {
-        public static void CreateBlindPickLobby()
-            => Lobby.PostLobby(new LolLobbyLobbyChangeGameDto { queueId = 430 });
+        public static Task CreateBlindPickLobbyAsync()
+            => Lobby.PostLobbyAsync(new LolLobbyLobbyChangeGameDto { queueId = 430 });
 
-        public static void CreateDraftPickLobby()
-            => Lobby.PostLobby(new LolLobbyLobbyChangeGameDto { queueId = 400 });
+        public static Task CreateDraftPickLobbyAsync()
+            => Lobby.PostLobbyAsync(new LolLobbyLobbyChangeGameDto { queueId = 400 });
     }
 }

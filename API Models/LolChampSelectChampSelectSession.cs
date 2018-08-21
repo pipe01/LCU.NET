@@ -2,7 +2,7 @@ namespace LCU.NET.API_Models
 {
     public class LolChampSelectChampSelectSession
     {
-        public LolChampSelectChampSelectAction[] actions { get; set; }
+        public LolChampSelectChampSelectAction[][] actions { get; set; }
         public bool allowBattleBoost { get; set; }
         public bool allowDuplicatePicks { get; set; }
         public bool allowRerolling { get; set; }

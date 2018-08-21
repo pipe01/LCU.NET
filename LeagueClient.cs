@@ -21,6 +21,8 @@ namespace LCU.NET
         private static FileSystemWatcher Watcher;
 
         internal static RestClient Client;
+        
+        public static bool Running { get; private set; }
 
         /// <summary>
         /// Tries to get the LoL installation path and init. The client must be running.
@@ -91,18 +93,7 @@ namespace LCU.NET
 
             return req;
         }
-
-        internal static T MakeRequest<T>(string resource, Method method, object data = null) where T : new()
-        {
-            var resp = Client.Execute(BuildRequest(resource, method, data));
-            CheckErrors(resp);
-
-            return JsonConvert.DeserializeObject<T>(resp.Content, new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore
-            });
-        }
-
+        
         internal static async Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null) where T : new()
         {
             var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data));
@@ -113,37 +104,16 @@ namespace LCU.NET
                 NullValueHandling = NullValueHandling.Ignore
             });
         }
-
-        internal static void MakeRequest(string resource, Method method, object data = null)
-        {
-            var resp = Client.Execute(BuildRequest(resource, method, data));
-            CheckErrors(resp);
-        }
-
+        
         internal static async Task MakeRequestAsync(string resource, Method method, object data = null)
         {
             var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data));
             CheckErrors(resp);
         }
-
-        internal static T MakeRequest<T>(object data = null) where T : new()
-        {
-            var method = new StackFrame(1).GetMethod();
-            var apiAttr = method.GetCustomAttribute<APIMethodAttribute>();
-
-            if (apiAttr != null)
-            {
-                T act() => MakeRequest<T>(apiAttr.URI, apiAttr.Method, data);
-
-                return apiAttr.Cache ? Cache(act) : act();
-            }
-
-            throw new InvalidOperationException("This method can only be called from a method with an APIMethodAttribute!");
-        }
-
+        
         internal static async Task<T> MakeRequestAsync<T>(object data = null) where T : new()
         {
-            var method = new StackFrame(1).GetMethod();
+            var method = new StackFrame(3).GetMethod();
             var apiAttr = method.GetCustomAttribute<APIMethodAttribute>();
 
             if (apiAttr != null)
@@ -155,25 +125,10 @@ namespace LCU.NET
 
             throw new InvalidOperationException("This method can only be called from a method with an APIMethodAttribute!");
         }
-
-        internal static void MakeRequest(object data = null)
-        {
-            var method = new StackFrame(1).GetMethod();
-            var apiAttr = method.GetCustomAttribute<APIMethodAttribute>();
-
-            if (apiAttr != null)
-            {
-                MakeRequest(apiAttr.URI, apiAttr.Method, data);
-            }
-            else
-            {
-                throw new InvalidOperationException("This method can only be called from a method with an APIMethodAttribute!");
-            }
-        }
-
+        
         internal static Task MakeRequestAsync(object data = null)
         {
-            var method = new StackFrame(1).GetMethod();
+            var method = new StackFrame(2).GetMethod();
             var apiAttr = method.GetCustomAttribute<APIMethodAttribute>();
 
             if (apiAttr != null)
@@ -191,7 +146,7 @@ namespace LCU.NET
             if (response.Content.Contains("\"errorCode\""))
             {
                 var error = JsonConvert.DeserializeObject<ErrorData>(response.Content);
-                throw new ApiErrorException(error);
+                throw new APIErrorException(error);
             }
         }
 

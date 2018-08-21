@@ -13,7 +13,7 @@ using WebSocketSharp;
 
 namespace LCU.NET
 {
-    internal static class LeagueSocket
+    public static class LeagueSocket
     {
         private static WebSocket Socket;
         private static IDictionary<Regex, Tuple<Type, Delegate>> Subscribers = new Dictionary<Regex, Tuple<Type, Delegate>>();
@@ -21,7 +21,7 @@ namespace LCU.NET
         public delegate void MessageHandlerDelegate<T>(string eventType, T data);
         
 #pragma warning disable RCS1163 // Unused parameter.
-        public static void Init(int port, string password)
+        internal static void Init(int port, string password)
         {
             if (File.Exists("log.txt"))
                 File.Delete("log.txt");
@@ -43,7 +43,7 @@ namespace LCU.NET
         {
             Subscribe(new Regex($"^{Regex.Escape(path)}$"), action);
         }
-
+        
         public static void Subscribe<T>(Regex regex, MessageHandlerDelegate<T> action)
         {
             Subscribers.Add(regex, new Tuple<Type, Delegate>(typeof(T), action));
