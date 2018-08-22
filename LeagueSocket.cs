@@ -13,12 +13,34 @@ using WebSocketSharp;
 
 namespace LCU.NET
 {
+    internal enum MessageTypes
+    {
+        WELCOME,
+        PREFIX,
+        CALL,
+        CALLRESULT,
+        CALLERROR,
+        SUBSCRIBE,
+        UNSUBSCRIBE,
+        PUBLISH,
+        EVENT
+    }
+
+    public enum EventType
+    {
+        Create,
+        Update,
+        Delete
+    }
+
     public static class LeagueSocket
     {
         private static WebSocket Socket;
         private static IDictionary<Regex, Tuple<Type, Delegate>> Subscribers = new Dictionary<Regex, Tuple<Type, Delegate>>();
 
-        public delegate void MessageHandlerDelegate<T>(string eventType, T data);
+        public static bool DumpToDebug { get; set; }
+
+        public delegate void MessageHandlerDelegate<T>(EventType eventType, T data);
         
 #pragma warning disable RCS1163 // Unused parameter.
         internal static void Init(int port, string password)
@@ -58,9 +80,10 @@ namespace LCU.NET
 
         private static void Socket_OnMessage(object sender, MessageEventArgs e)
         {
-            Debug.WriteLine(e.Data);
+            if (DumpToDebug)
+                Debug.WriteLine(e.Data);
             
-            JArray obj = JArray.Parse(e.Data);
+            var obj = JArray.Parse(e.Data);
             
             if (obj.Count > 1 && obj[1].Value<string>() == "OnJsonApiEvent")
             {
@@ -69,9 +92,22 @@ namespace LCU.NET
 
                 foreach (var item in Subscribers.Where(o => o.Key.IsMatch(uri)))
                 {
-                    object data = obj[2]["data"].ToObject(item.Value.Item1);
+                    object data;
 
-                    item.Value.Item2.DynamicInvoke(eventType, data);
+                    try
+                    {
+                        data = obj[2]["data"].ToObject(item.Value.Item1);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        //TODO Do something?
+                        continue;
+                    }
+
+                    if (!Enum.TryParse<EventType>(eventType, out var @event))
+                        throw new Exception("Invalid event type found: " + eventType);
+
+                    item.Value.Item2.DynamicInvoke(@event, data);
                 }
             }
         }

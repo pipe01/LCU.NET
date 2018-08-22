@@ -4,10 +4,10 @@ using RestSharp;
 using RestSharp.Authenticators;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -40,7 +40,10 @@ namespace LCU.NET
         /// <summary>
         /// Tries to get the LoL installation path and init. The client must be running.
         /// </summary>
-        public static bool TryInit() => TryInitInner(true);
+        public static bool TryInit()
+        {
+            return TryInitInner(true);
+        }
 
         private static bool TryInitInner(bool @catch = true)
         {
@@ -177,34 +180,45 @@ namespace LCU.NET
             CheckErrors(resp);
         }
 
-        internal static async Task<T> MakeRequestAsync<T>(object data = null) where T : new()
+        internal static Task<T> MakeRequestAsync<T>(object data = null, [CallerMemberName] string methodName = "") where T : new()
         {
-            var method = new StackFrame(3).GetMethod();
-            var apiAttr = method.GetCustomAttribute<APIMethodAttribute>();
+            var apiAttr = GetCallingAPI(methodName);
 
-            if (apiAttr != null)
-            {
-                Task<T> act() => MakeRequestAsync<T>(apiAttr.URI, apiAttr.Method, data);
+            Task<T> act() => MakeRequestAsync<T>(apiAttr.URI, apiAttr.Method, data);
 
-                return await (apiAttr.Cache ? Cache(act) : act());
-            }
-
-            throw new InvalidOperationException("This method can only be called from a method with an APIMethodAttribute!");
+            return apiAttr.Cache ? Cache(act) : act();
         }
 
-        internal static Task MakeRequestAsync(object data = null)
+        internal static Task MakeRequestAsync(object data = null, [CallerMemberName] string methodName = "")
         {
-            var method = new StackFrame(2).GetMethod();
-            var apiAttr = method.GetCustomAttribute<APIMethodAttribute>();
+            var apiAttr = GetCallingAPI(methodName);
 
-            if (apiAttr != null)
+            return MakeRequestAsync(apiAttr.URI, apiAttr.Method, data);
+        }
+
+        private static APIMethodAttribute GetCallingAPI(string methodName, bool @throw = true)
+        {
+            var trace = new StackTrace();
+
+            for (int i = 0; i < trace.FrameCount; i++)
             {
-                return MakeRequestAsync(apiAttr.URI, apiAttr.Method, data);
+                var method = trace.GetFrame(i).GetMethod();
+
+                if (method.Name == methodName)
+                {
+                    var attr = method.GetCustomAttribute<APIMethodAttribute>();
+
+                    if (attr != null)
+                    {
+                        return attr;
+                    }
+                }
             }
-            else
-            {
+
+            if (@throw)
                 throw new InvalidOperationException("This method can only be called from a method with an APIMethodAttribute!");
-            }
+
+            return null;
         }
 
         private static void CheckErrors(IRestResponse response)

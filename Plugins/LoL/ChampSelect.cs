@@ -7,15 +7,15 @@ namespace LCU.NET.Plugins.LoL
 {
     public static class ChampSelect
     {
-        public const string Endpoint = "/lol-champ-select/v1";
+        public const string Endpoint = "/lol-champ-select/v1/session";
 
-        [APIMethod(Endpoint + "/session", Method.GET)]
+        [APIMethod(Endpoint, Method.GET)]
         public static Task<LolChampSelectChampSelectSession> GetSessionAsync() => MakeRequestAsync<LolChampSelectChampSelectSession>();
         
-        [APIMethod(Endpoint + "/session/my-selection", Method.PATCH)]
+        [APIMethod(Endpoint + "/my-selection", Method.PATCH)]
         public static Task PatchMySelectionAsync(LolChampSelectChampSelectMySelection selection) => MakeRequestAsync(selection);
         
-        [APIMethod(Endpoint + "/session/timer", Method.GET)]
+        [APIMethod(Endpoint + "/timer", Method.GET)]
         public static Task<LolChampSelectChampSelectTimer> GetTimerAsync() => MakeRequestAsync<LolChampSelectChampSelectTimer>();
     }
 }
