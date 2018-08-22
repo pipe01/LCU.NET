@@ -4,10 +4,11 @@ using RestSharp;
 using RestSharp.Authenticators;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LCU.NET
@@ -21,33 +22,80 @@ namespace LCU.NET
         private static FileSystemWatcher Watcher;
 
         internal static RestClient Client;
-        
-        public static bool Running { get; private set; }
+
+        private static bool _Connected;
+        public static bool Connected
+        {
+            get => _Connected;
+            private set
+            {
+                _Connected = value;
+                ConnectedChanged?.Invoke(value);
+            }
+        }
+
+        public delegate void ConnectedChangedDelegate(bool connected);
+        public static event ConnectedChangedDelegate ConnectedChanged;
 
         /// <summary>
         /// Tries to get the LoL installation path and init. The client must be running.
         /// </summary>
-        public static bool TryInit()
+        public static bool TryInit() => TryInitInner(true);
+
+        private static bool TryInitInner(bool @catch = true)
         {
             var p = Process.GetProcessesByName("LeagueClient");
 
             if (p.Length > 0)
             {
                 //May lord forgive me
-                Init(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(p[0].MainModule.FileName), "../../../../../../")));
-
-                return true;
+                try
+                {
+                    return Init(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(p[0].MainModule.FileName), "../../../../../../")));
+                }
+                catch (Exception)
+                {
+                    if (@catch)
+                    {
+                        Thread.Sleep(1000);
+                        return TryInitInner(false);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
             }
 
             return false;
         }
 
-        public static void Init(string lolPath)
+        /// <summary>
+        /// Begins to look for the LoL client and inits when detected.
+        /// </summary>
+        public static void BeginTryInit()
         {
+            new Thread(() =>
+            {
+                while (!TryInit())
+                {
+                    Thread.Sleep(500);
+                }
+            })
+            {
+                IsBackground = true
+            }.Start();
+        }
+
+        public static bool Init(string lolPath)
+        {
+            if (Connected)
+                return false;
+
             string lockFilePath = Path.Combine(lolPath, "lockfile");
 
             if (!File.Exists(lockFilePath))
-                return;
+                return false;
 
             string lockFile;
 
@@ -74,11 +122,23 @@ namespace LCU.NET
             });
 
             LeagueSocket.Init(Port, Token);
+
+            Connected = true;
+
+            return true;
+        }
+
+        internal static void Close()
+        {
+            Connected = false;
         }
 
         private static void Watcher_Deleted(object sender, FileSystemEventArgs e)
         {
-            throw new NotImplementedException();
+            if (e.Name == "lockfile")
+            {
+                Connected = false;
+            }
         }
 
         private static RestRequest BuildRequest(string resource, Method method, object data)
@@ -93,9 +153,12 @@ namespace LCU.NET
 
             return req;
         }
-        
+
         internal static async Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null) where T : new()
         {
+            if (!Connected)
+                return default;
+
             var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data));
             CheckErrors(resp);
 
@@ -104,13 +167,16 @@ namespace LCU.NET
                 NullValueHandling = NullValueHandling.Ignore
             });
         }
-        
+
         internal static async Task MakeRequestAsync(string resource, Method method, object data = null)
         {
+            if (!Connected)
+                return;
+
             var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data));
             CheckErrors(resp);
         }
-        
+
         internal static async Task<T> MakeRequestAsync<T>(object data = null) where T : new()
         {
             var method = new StackFrame(3).GetMethod();
@@ -125,7 +191,7 @@ namespace LCU.NET
 
             throw new InvalidOperationException("This method can only be called from a method with an APIMethodAttribute!");
         }
-        
+
         internal static Task MakeRequestAsync(object data = null)
         {
             var method = new StackFrame(2).GetMethod();

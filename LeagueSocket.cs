@@ -31,6 +31,7 @@ namespace LCU.NET
             Socket.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
             Socket.SslConfiguration.ServerCertificateValidationCallback = (b, o, O, B) => true;
             Socket.OnMessage += Socket_OnMessage;
+            Socket.OnClose += Socket_OnClose;
             Socket.Connect();
             Socket.Send("[5, \"OnJsonApiEvent\"]");
             //Socket.Send("[4]");
@@ -38,6 +39,11 @@ namespace LCU.NET
             Debug.WriteLine("WebSocket connected");
         }
 #pragma warning restore RCS1163 // Unused parameter.
+        
+        private static void Socket_OnClose(object sender, CloseEventArgs e)
+        {
+            LeagueClient.Close();
+        }
 
         public static void Subscribe<T>(string path, MessageHandlerDelegate<T> action)
         {
