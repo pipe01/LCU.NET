@@ -88,6 +88,7 @@
     <Compile Include="API Models\LolPerksPerkPageResource.cs" />
     <Compile Include="API Models\LolPerksPerkUIPerk.cs" />
     <Compile Include="API Models\LolPerksPlayerInventory.cs" />
+    <Compile Include="API Models\RegionLocale.cs" />
     <Compile Include="ApiErrorException.cs" />
     <Compile Include="APIMethodAttribute.cs" />
     <Compile Include="LeagueClient.cs" />
