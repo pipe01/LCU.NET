@@ -1,4 +1,5 @@
 ﻿using LCU.NET.API_Models;
+using LCU.NET.WAMP;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -13,19 +14,6 @@ using WebSocketSharp;
 
 namespace LCU.NET
 {
-    internal enum MessageTypes
-    {
-        WELCOME,
-        PREFIX,
-        CALL,
-        CALLRESULT,
-        CALLERROR,
-        SUBSCRIBE,
-        UNSUBSCRIBE,
-        PUBLISH,
-        EVENT
-    }
-
     public enum EventType
     {
         Create,
@@ -40,9 +28,10 @@ namespace LCU.NET
 
         public static bool DumpToDebug { get; set; }
 
+        public static bool DebugMode { get; set; }
+
         public delegate void MessageHandlerDelegate<T>(EventType eventType, T data);
         
-#pragma warning disable RCS1163 // Unused parameter.
         internal static void Init(int port, string password)
         {
             if (File.Exists("log.txt"))
@@ -51,16 +40,14 @@ namespace LCU.NET
             Socket = new WebSocket($"wss://127.0.0.1:{port}/", "wamp");
             Socket.SetCredentials("riot", password, true);
             Socket.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
-            Socket.SslConfiguration.ServerCertificateValidationCallback = (b, o, O, B) => true;
+            Socket.SslConfiguration.ServerCertificateValidationCallback = delegate { return true; };
             Socket.OnMessage += Socket_OnMessage;
             Socket.OnClose += Socket_OnClose;
             Socket.Connect();
             Socket.Send("[5, \"OnJsonApiEvent\"]");
-            //Socket.Send("[4]");
-            
+
             Debug.WriteLine("WebSocket connected");
         }
-#pragma warning restore RCS1163 // Unused parameter.
         
         private static void Socket_OnClose(object sender, CloseEventArgs e)
         {
@@ -75,40 +62,41 @@ namespace LCU.NET
         public static void Subscribe<T>(Regex regex, MessageHandlerDelegate<T> action)
         {
             Subscribers.Add(regex, new Tuple<Type, Delegate>(typeof(T), action));
-            //Socket.Send($"[1, \"{regex}\"]");
         }
 
         private static void Socket_OnMessage(object sender, MessageEventArgs e)
         {
             if (DumpToDebug)
                 Debug.WriteLine(e.Data);
+
+            var ev = JsonApiEvent.Parse(e.Data);
             
-            var obj = JArray.Parse(e.Data);
-            
-            if (obj.Count > 1 && obj[1].Value<string>() == "OnJsonApiEvent")
+            if (!ev.Equals(default(JsonApiEvent)))
             {
-                string uri = obj[2]["uri"].Value<string>();
-                string eventType = obj[2]["eventType"].Value<string>();
+                if (LeagueClient.Proxy != null)
+                    ev = LeagueClient.Proxy.Handle(ev);
 
-                foreach (var item in Subscribers.Where(o => o.Key.IsMatch(uri)))
+                HandleEvent(ev);
+            }
+        }
+
+        public static void HandleEvent(JsonApiEvent @event)
+        {
+            foreach (var item in Subscribers.Where(o => o.Key.IsMatch(@event.URI)))
+            {
+                object data;
+
+                try
                 {
-                    object data;
-
-                    try
-                    {
-                        data = obj[2]["data"].ToObject(item.Value.Item1);
-                    }
-                    catch (InvalidCastException)
-                    {
-                        //TODO Do something?
-                        continue;
-                    }
-
-                    if (!Enum.TryParse<EventType>(eventType, out var @event))
-                        throw new Exception("Invalid event type found: " + eventType);
-
-                    item.Value.Item2.DynamicInvoke(@event, data);
+                    data = @event.GetData(item.Value.Item1);
                 }
+                catch (InvalidCastException)
+                {
+                    //TODO Do something?
+                    continue;
+                }
+
+                item.Value.Item2.DynamicInvoke(@event.EventType, data);
             }
         }
     }

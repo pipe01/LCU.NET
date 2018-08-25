@@ -34,6 +34,8 @@ namespace LCU.NET
             }
         }
 
+        public static IProxy Proxy { get; set; }
+
         public delegate void ConnectedChangedDelegate(bool connected);
         public static event ConnectedChangedDelegate ConnectedChanged;
 
@@ -159,6 +161,9 @@ namespace LCU.NET
 
         internal static async Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null) where T : new()
         {
+            if (Proxy != null && Proxy.Handle<T>(resource, method, data, out var ret))
+                return ret;
+
             if (!Connected)
                 return default;
 
@@ -173,6 +178,9 @@ namespace LCU.NET
 
         internal static async Task MakeRequestAsync(string resource, Method method, object data = null)
         {
+            if (Proxy?.Handle(resource, method, data) == true)
+                return;
+
             if (!Connected)
                 return;
 
