@@ -17,5 +17,8 @@ namespace LCU.NET.Plugins.LoL
         
         [APIMethod(Endpoint + "/timer", Method.GET)]
         public static Task<LolChampSelectChampSelectTimer> GetTimerAsync() => MakeRequestAsync<LolChampSelectChampSelectTimer>();
+
+        [APIMethod("/lol-champ-select/v1/current-champion", Method.GET)]
+        public static Task<int> GetCurrentChampion() => MakeRequestAsync<int>();
     }
 }
