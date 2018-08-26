@@ -159,7 +159,7 @@ namespace LCU.NET
             return req;
         }
 
-        internal static async Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null) where T : new()
+        public static async Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null) where T : new()
         {
             if (Proxy != null && Proxy.Handle<T>(resource, method, data, out var ret))
                 return ret;
@@ -176,7 +176,7 @@ namespace LCU.NET
             });
         }
 
-        internal static async Task MakeRequestAsync(string resource, Method method, object data = null)
+        public static async Task MakeRequestAsync(string resource, Method method, object data = null)
         {
             if (Proxy?.Handle(resource, method, data) == true)
                 return;
