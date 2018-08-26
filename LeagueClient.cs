@@ -234,6 +234,10 @@ namespace LCU.NET
             if (response.Content.Contains("\"errorCode\""))
             {
                 var error = JsonConvert.DeserializeObject<ErrorData>(response.Content);
+
+                if (error.Message == "No active delegate")
+                    throw new NoActiveDelegateException(error);
+
                 throw new APIErrorException(error);
             }
         }

@@ -89,11 +89,12 @@
     <Compile Include="API Models\LolPerksPerkUIPerk.cs" />
     <Compile Include="API Models\LolPerksPlayerInventory.cs" />
     <Compile Include="API Models\RegionLocale.cs" />
-    <Compile Include="ApiErrorException.cs" />
+    <Compile Include="APIErrorException.cs" />
     <Compile Include="APIMethodAttribute.cs" />
     <Compile Include="IProxy.cs" />
     <Compile Include="LeagueClient.cs" />
     <Compile Include="LeagueSocket.cs" />
+    <Compile Include="NoActiveDelegateException.cs" />
     <Compile Include="Plugins\LoL\ChampSelect.cs" />
     <Compile Include="Plugins\LoL\Lobby.cs" />
     <Compile Include="Plugins\LoL\LobbyExt.cs" />
