@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -188,20 +189,26 @@ namespace LCU.NET
             CheckErrors(resp);
         }
 
-        internal static Task<T> MakeRequestAsync<T>(object data = null, [CallerMemberName] string methodName = "") where T : new()
+        internal static Task<T> MakeRequestAsync<T>(object data = null, [CallerMemberName] string methodName = "", params string[] args) where T : new()
         {
             var apiAttr = GetCallingAPI(methodName);
 
-            Task<T> act() => MakeRequestAsync<T>(apiAttr.URI, apiAttr.Method, data);
+            Task<T> act() => MakeRequestAsync<T>(ReplaceArgs(apiAttr.URI, args), apiAttr.Method, data);
 
             return apiAttr.Cache ? Cache(act) : act();
         }
 
-        internal static Task MakeRequestAsync(object data = null, [CallerMemberName] string methodName = "")
+        internal static Task MakeRequestAsync(object data = null, [CallerMemberName] string methodName = "", params string[] args)
         {
             var apiAttr = GetCallingAPI(methodName);
 
-            return MakeRequestAsync(apiAttr.URI, apiAttr.Method, data);
+            return MakeRequestAsync(ReplaceArgs(apiAttr.URI, args), apiAttr.Method, data);
+        }
+
+        private static string ReplaceArgs(string url, string[] args)
+        {
+            int i = 0;
+            return Regex.Replace(url, "{.*?}", o => o.Result(args[i++]));
         }
 
         private static APIMethodAttribute GetCallingAPI(string methodName, bool @throw = true)
