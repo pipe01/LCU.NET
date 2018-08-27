@@ -10,15 +10,23 @@ namespace LCU.NET.Plugins.LoL
         public const string Endpoint = "/lol-champ-select/v1/session";
 
         [APIMethod(Endpoint, Method.GET)]
-        public static Task<LolChampSelectChampSelectSession> GetSessionAsync() => MakeRequestAsync<LolChampSelectChampSelectSession>();
+        public static Task<LolChampSelectChampSelectSession> GetSessionAsync()
+            => MakeRequestAsync<LolChampSelectChampSelectSession>();
         
         [APIMethod(Endpoint + "/my-selection", Method.PATCH)]
-        public static Task PatchMySelectionAsync(LolChampSelectChampSelectMySelection selection) => MakeRequestAsync(selection);
+        public static Task PatchMySelectionAsync(LolChampSelectChampSelectMySelection selection)
+            => MakeRequestAsync(selection);
         
         [APIMethod(Endpoint + "/timer", Method.GET)]
-        public static Task<LolChampSelectChampSelectTimer> GetTimerAsync() => MakeRequestAsync<LolChampSelectChampSelectTimer>();
+        public static Task<LolChampSelectChampSelectTimer> GetTimerAsync()
+            => MakeRequestAsync<LolChampSelectChampSelectTimer>();
 
         [APIMethod("/lol-champ-select/v1/current-champion", Method.GET)]
-        public static Task<int> GetCurrentChampion() => MakeRequestAsync<int>();
+        public static Task<int> GetCurrentChampion()
+            => MakeRequestAsync<int>();
+
+        [APIMethod(Endpoint + "/actions/{id}", Method.PATCH)]
+        public static Task PatchActionById(LolChampSelectChampSelectAction action, int id)
+            => MakeRequestAsync(action, args: id.ToString());
     }
 }
