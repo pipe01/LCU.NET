@@ -85,6 +85,7 @@
     <Compile Include="API Models\LolLoginLoginQueue.cs" />
     <Compile Include="API Models\LolLoginLoginSession.cs" />
     <Compile Include="API Models\LolLoginUsernameAndPassword.cs" />
+    <Compile Include="API Models\LolMatchmakingMatchmakingReadyCheckResource.cs" />
     <Compile Include="API Models\LolPerksPerkPageResource.cs" />
     <Compile Include="API Models\LolPerksPerkUIPerk.cs" />
     <Compile Include="API Models\LolPerksPlayerInventory.cs" />
@@ -99,6 +100,7 @@
     <Compile Include="Plugins\LoL\Lobby.cs" />
     <Compile Include="Plugins\LoL\LobbyExt.cs" />
     <Compile Include="Plugins\LoL\Login.cs" />
+    <Compile Include="Plugins\LoL\Matchmaking.cs" />
     <Compile Include="Plugins\LoL\Perks.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Plugins\RiotClient.cs" />
