@@ -54,14 +54,33 @@ namespace LCU.NET
             LeagueClient.Close();
         }
 
+        private static Regex BuildRegex(string path) => new Regex($"^{Regex.Escape(path)}$");
+
         public static void Subscribe<T>(string path, MessageHandlerDelegate<T> action)
         {
-            Subscribe(new Regex($"^{Regex.Escape(path)}$"), action);
+            Subscribe(BuildRegex(path), action);
         }
         
         public static void Subscribe<T>(Regex regex, MessageHandlerDelegate<T> action)
         {
             Subscribers.Add(regex, new Tuple<Type, Delegate>(typeof(T), action));
+        }
+
+        public static void Unsubscribe(string path)
+        {
+            Unsubscribe(BuildRegex(path));
+        }
+
+        public static void Unsubscribe(Regex regex)
+        {
+            if (Subscribers.TryGetValue(regex, out var v))
+            {
+                Subscribers.Remove(regex);
+            }
+            else
+            {
+                throw new KeyNotFoundException();
+            }
         }
 
         private static void Socket_OnMessage(object sender, MessageEventArgs e)
