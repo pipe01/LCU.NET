@@ -28,5 +28,13 @@ namespace LCU.NET.Plugins.LoL
         [APIMethod(Endpoint + "/actions/{id}", Method.PATCH)]
         public static Task PatchActionById(LolChampSelectChampSelectAction action, int id)
             => MakeRequestAsync(action, args: id.ToString());
+
+        [APIMethod("/lol-champ-select/v1/pickable-champions", Method.GET)]
+        public static Task<LolChampSelectChampSelectPickableChampions> GetPickableChampions()
+            => MakeRequestAsync<LolChampSelectChampSelectPickableChampions>();
+
+        [APIMethod("/lol-champ-select/v1/bannable-champions", Method.GET)]
+        public static Task<LolChampSelectChampSelectBannableChampions> GetBannableChampions()
+            => MakeRequestAsync<LolChampSelectChampSelectBannableChampions>();
     }
 }
