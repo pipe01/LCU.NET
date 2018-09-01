@@ -61,6 +61,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API Models\ErrorData.cs" />
+    <Compile Include="API Models\LolChampionsCollectionsChampionMinimal.cs" />
+    <Compile Include="API Models\LolChampionsCollectionsOwnership.cs" />
+    <Compile Include="API Models\LolChampionsCollectionsRental.cs" />
     <Compile Include="API Models\LolChampSelectChampSelectAction.cs" />
     <Compile Include="API Models\LolChampSelectChampSelectBannableChampions.cs" />
     <Compile Include="API Models\LolChampSelectChampSelectBannedChampions.cs" />
@@ -98,6 +101,7 @@
     <Compile Include="LeagueClient.cs" />
     <Compile Include="LeagueSocket.cs" />
     <Compile Include="NoActiveDelegateException.cs" />
+    <Compile Include="Plugins\LoL\Champions.cs" />
     <Compile Include="Plugins\LoL\ChampSelect.cs" />
     <Compile Include="Plugins\LoL\Lobby.cs" />
     <Compile Include="Plugins\LoL\LobbyExt.cs" />

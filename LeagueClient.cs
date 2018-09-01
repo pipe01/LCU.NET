@@ -160,7 +160,7 @@ namespace LCU.NET
             return req;
         }
 
-        public static async Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null) where T : new()
+        public static async Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null)
         {
             if (Proxy != null && Proxy.Handle<T>(resource, method, data, out var ret))
                 return ret;
@@ -189,7 +189,7 @@ namespace LCU.NET
             CheckErrors(resp);
         }
 
-        internal static Task<T> MakeRequestAsync<T>(object data = null, [CallerMemberName] string methodName = "", params string[] args) where T : new()
+        internal static Task<T> MakeRequestAsync<T>(object data = null, [CallerMemberName] string methodName = "", params string[] args)
         {
             var apiAttr = GetCallingAPI(methodName);
 
