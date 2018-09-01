@@ -5,7 +5,9 @@ using RestSharp.Authenticators;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Dynamic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -147,20 +149,34 @@ namespace LCU.NET
             }
         }
 
-        private static RestRequest BuildRequest(string resource, Method method, object data)
+        private static RestRequest BuildRequest(string resource, Method method, object data, string[] fields = null)
         {
             var req = new RestRequest(resource, method);
 
             if (data != null)
             {
+                object realData = data;
+
+                if (fields?.Length != 0)
+                {
+                    var dic = new Dictionary<string, object>();
+
+                    foreach (var item in data.GetType().GetProperties().Where(o => fields.Contains(o.Name)))
+                    {
+                        dic[item.Name] = item.GetValue(data);
+                    }
+
+                    realData = dic;
+                }
+
                 req.AddHeader("Content-Type", "application/json");
-                req.AddJsonBody(data);
+                req.AddJsonBody(realData);
             }
 
             return req;
         }
 
-        public static async Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null)
+        public static async Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null, params string[] fields)
         {
             if (Proxy != null && Proxy.Handle<T>(resource, method, data, out var ret))
                 return ret;
@@ -168,7 +184,7 @@ namespace LCU.NET
             if (!Connected)
                 return default;
 
-            var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data));
+            var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data, fields));
             CheckErrors(resp);
 
             return JsonConvert.DeserializeObject<T>(resp.Content, new JsonSerializerSettings
@@ -177,7 +193,7 @@ namespace LCU.NET
             });
         }
 
-        public static async Task MakeRequestAsync(string resource, Method method, object data = null)
+        public static async Task MakeRequestAsync(string resource, Method method, object data = null, params string[] fields)
         {
             if (Proxy?.Handle(resource, method, data) == true)
                 return;
@@ -185,7 +201,7 @@ namespace LCU.NET
             if (!Connected)
                 return;
 
-            var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data));
+            var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data, fields));
             CheckErrors(resp);
         }
 
