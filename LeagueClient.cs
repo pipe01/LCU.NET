@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -20,9 +21,7 @@ namespace LCU.NET
     {
         private static string Token;
         private static int Port;
-        private static int PID;
         private static IDictionary<string, object> CacheDic = new Dictionary<string, object>();
-        private static FileSystemWatcher Watcher;
 
         internal static RestClient Client;
 
@@ -56,23 +55,7 @@ namespace LCU.NET
 
             if (p.Length > 0)
             {
-                //May lord forgive me
-                try
-                {
-                    return Init(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(p[0].MainModule.FileName), "../../../../../../")));
-                }
-                catch (Exception)
-                {
-                    if (@catch)
-                    {
-                        Thread.Sleep(1000);
-                        return TryInitInner(false);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
+                return Init();
             }
 
             return false;
@@ -95,38 +78,33 @@ namespace LCU.NET
             }.Start();
         }
 
-        public static bool Init(string lolPath)
+        public static bool Init()
         {
             if (Connected)
                 return false;
 
-            string lockFilePath = Path.Combine(lolPath, "lockfile");
+            var process = Process.GetProcessesByName("LeagueClientUx").FirstOrDefault();
 
-            if (!File.Exists(lockFilePath))
+            if (process == null)
                 return false;
 
-            string lockFile;
+            string cmdLine = process.GetCommandLine();
 
-            using (var stream = File.Open(lockFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                lockFile = new StreamReader(stream).ReadToEnd();
+            if (cmdLine == null)
+                return false;
 
-            Watcher = new FileSystemWatcher(lolPath, "lockfile");
-            Watcher.Deleted += Watcher_Deleted;
+            string portStr = Regex.Match(cmdLine, @"(?<=--app-port=)\d+").Value;
+            Port = int.Parse(portStr);
+            Token = Regex.Match(cmdLine, "(?<=--remoting-auth-token=).*?(?=\")").Value;
 
-            string[] parts = lockFile.Split(':');
-
-            PID = int.Parse(parts[1]);
-            Port = int.Parse(parts[2]);
-            Token = parts[3];
+            process.Exited += (a, b) => Close();
 
             Client = new RestClient("https://127.0.0.1:" + Port);
             Client.Authenticator = new HttpBasicAuthenticator("riot", Token);
             Client.ConfigureWebRequest(o =>
             {
                 o.Accept = "application/json";
-#pragma warning disable RCS1163 // Unused parameter.
-                o.ServerCertificateValidationCallback = (a, b, c, d) => true;
-#pragma warning restore RCS1163 // Unused parameter.
+                o.ServerCertificateValidationCallback = delegate { return true; };
             });
 
             LeagueSocket.Init(Port, Token);
@@ -139,14 +117,18 @@ namespace LCU.NET
         internal static void Close()
         {
             Connected = false;
+            LeagueSocket.Close();
         }
 
-        private static void Watcher_Deleted(object sender, FileSystemEventArgs e)
+        private static string GetCommandLine(this Process process)
         {
-            if (e.Name == "lockfile")
+            using (var searcher = new ManagementObjectSearcher(
+                $"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {process.Id}"))
+            using (var objects = searcher.Get())
             {
-                Connected = false;
+                return objects.Cast<ManagementBaseObject>().SingleOrDefault()?["CommandLine"]?.ToString();
             }
+
         }
 
         private static RestRequest BuildRequest(string resource, Method method, object data, string[] fields = null)

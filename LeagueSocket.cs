@@ -54,6 +54,12 @@ namespace LCU.NET
             LeagueClient.Close();
         }
 
+        internal static void Close()
+        {
+            Socket.Close();
+            Socket = null;
+        }
+
         private static Regex BuildRegex(string path) => new Regex($"^{Regex.Escape(path)}$");
 
         public static void Subscribe<T>(string path, MessageHandlerDelegate<T> action)
