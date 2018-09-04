@@ -39,7 +39,7 @@ namespace LCU.NET.Plugins.LoL
         /// </summary>
         /// <param name="id">The page's ID.</param>
         public static Task<LolPerksPerkPageResource> GetPageAsync(int id)
-            => MakeRequestAsync<LolPerksPerkPageResource>("/lol-perks/v1/pages/" + id, Method.GET);
+            => Default.MakeRequestAsync<LolPerksPerkPageResource>("/lol-perks/v1/pages/" + id, Method.GET);
 
         /// <summary>
         /// Updates a rune page.
@@ -47,7 +47,7 @@ namespace LCU.NET.Plugins.LoL
         /// <param name="id">The page's ID.</param>
         /// <param name="page">The new page.</param>
         public static Task<LolPerksPerkPageResource> PutPageAsync(int id, LolPerksPerkPageResource page)
-            => MakeRequestAsync<LolPerksPerkPageResource>("/lol-perks/v1/pages/" + id, Method.PUT, page);
+            => Default.MakeRequestAsync<LolPerksPerkPageResource>("/lol-perks/v1/pages/" + id, Method.PUT, page);
 
         /// <summary>
         /// Creates a new rune page.

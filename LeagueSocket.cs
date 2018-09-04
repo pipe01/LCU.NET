@@ -51,7 +51,7 @@ namespace LCU.NET
         
         private static void Socket_OnClose(object sender, CloseEventArgs e)
         {
-            LeagueClient.Close();
+            LeagueClient.Default.Close();
         }
 
         internal static void Close()
@@ -98,8 +98,8 @@ namespace LCU.NET
             
             if (!ev.Equals(default(JsonApiEvent)))
             {
-                if (LeagueClient.Proxy != null)
-                    ev = LeagueClient.Proxy.Handle(ev);
+                if (LeagueClient.Default.Proxy != null)
+                    ev = LeagueClient.Default.Proxy.Handle(ev);
 
                 HandleEvent(ev);
             }

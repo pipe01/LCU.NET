@@ -98,6 +98,7 @@
     <Compile Include="API Models\RegionLocale.cs" />
     <Compile Include="APIErrorException.cs" />
     <Compile Include="APIMethodAttribute.cs" />
+    <Compile Include="ILeagueClient.cs" />
     <Compile Include="IProxy.cs" />
     <Compile Include="LeagueClient.cs" />
     <Compile Include="LeagueSocket.cs" />

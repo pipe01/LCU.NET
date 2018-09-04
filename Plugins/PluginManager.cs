@@ -16,7 +16,7 @@ namespace LCU.NET.Plugins
             if (!cache || !Cache.TryGetValue(uri, out var data))
             {
                 var req = new RestRequest(uri, Method.GET);
-                var resp = await LeagueClient.Client.ExecuteTaskAsync(req);
+                var resp = await LeagueClient.Default.Client.ExecuteTaskAsync(req);
                 Cache[uri] = data = resp.RawBytes;
             }
 
