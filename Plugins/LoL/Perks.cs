@@ -35,6 +35,14 @@ namespace LCU.NET.Plugins.LoL
             => (await MakeRequestAsync<List<LolPerksPerkPageResource>>().ConfigureAwait(false)).ToArray();
 
         /// <summary>
+        /// Deletes a rune page by ID.
+        /// </summary>
+        /// <param name="id">The page's ID.</param>
+        [APIMethod("/lol-perks/v1/pages/{id}", Method.DELETE)]
+        public static Task DeletePageAsync(int id)
+            => MakeRequestAsync(args: id.ToString());
+
+        /// <summary>
         /// Gets a rune page by ID.
         /// </summary>
         /// <param name="id">The page's ID.</param>
