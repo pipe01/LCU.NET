@@ -17,9 +17,9 @@ using System.Threading.Tasks;
 
 namespace LCU.NET
 {
-    public class LeagueClient : ILeagueClient
+    public sealed class LeagueClient : ILeagueClient
     {
-        public static ILeagueClient Default { get; } = new LeagueClient();
+        public static ILeagueClient Default { get; set; } = new LeagueClient();
 
         private static IDictionary<string, object> CacheDic = new Dictionary<string, object>();
 
