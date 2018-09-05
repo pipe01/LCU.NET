@@ -75,6 +75,11 @@
     <Compile Include="API Models\LolChampSelectChampSelectSession.cs" />
     <Compile Include="API Models\LolChampSelectChampSelectTimer.cs" />
     <Compile Include="API Models\LolChampSelectChampSelectTradeContract.cs" />
+    <Compile Include="API Models\LolItemSetsItemSet.cs" />
+    <Compile Include="API Models\LolItemSetsItemSetBlock.cs" />
+    <Compile Include="API Models\LolItemSetsItemSetItem.cs" />
+    <Compile Include="API Models\LolItemSetsItemSets.cs" />
+    <Compile Include="API Models\LolItemSetsPreferredItemSlot.cs" />
     <Compile Include="API Models\LolLobbyEligibilityRestriction.cs" />
     <Compile Include="API Models\LolLobbyLobbyBotParams.cs" />
     <Compile Include="API Models\LolLobbyLobbyChangeGameDto.cs" />
@@ -105,6 +110,7 @@
     <Compile Include="NoActiveDelegateException.cs" />
     <Compile Include="Plugins\LoL\Champions.cs" />
     <Compile Include="Plugins\LoL\ChampSelect.cs" />
+    <Compile Include="Plugins\LoL\ItemSets.cs" />
     <Compile Include="Plugins\LoL\Lobby.cs" />
     <Compile Include="Plugins\LoL\LobbyExt.cs" />
     <Compile Include="Plugins\LoL\Login.cs" />
