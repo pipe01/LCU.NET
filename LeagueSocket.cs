@@ -72,6 +72,11 @@ namespace LCU.NET
             Subscribers.Add(regex, new Tuple<Type, Delegate>(typeof(T), action));
         }
 
+        public static void SubscribeRaw(Action<JsonApiEvent> handler)
+        {
+            Subscribers.Add(new Regex(".*"), new Tuple<Type, Delegate>(typeof(JsonApiEvent), handler));
+        }
+
         public static void Unsubscribe(string path)
         {
             Unsubscribe(BuildRegex(path));
@@ -109,19 +114,26 @@ namespace LCU.NET
         {
             foreach (var item in Subscribers.Where(o => o.Key.IsMatch(@event.URI)))
             {
-                object data;
-
-                try
+                if (item.Value.Item1 == typeof(JsonApiEvent))
                 {
-                    data = @event.GetData(item.Value.Item1);
+                    item.Value.Item2.DynamicInvoke(@event);
                 }
-                catch (InvalidCastException)
+                else
                 {
-                    //TODO Do something?
-                    continue;
-                }
+                    object data;
 
-                item.Value.Item2.DynamicInvoke(@event.EventType, data);
+                    try
+                    {
+                        data = @event.GetData(item.Value.Item1);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        //TODO Do something?
+                        continue;
+                    }
+
+                    item.Value.Item2.DynamicInvoke(@event.EventType, data);
+                }
             }
         }
     }

@@ -10,8 +10,13 @@ namespace LCU.NET.WAMP
 {
     public struct JsonApiEvent
     {
+        [JsonProperty("eventType")]
         public EventType EventType { get; }
+
+        [JsonProperty("uri")]
         public string URI { get; }
+
+        [JsonProperty("data")]
         public JToken Data { get; }
 
         [JsonConstructor]
