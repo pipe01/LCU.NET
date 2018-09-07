@@ -97,16 +97,19 @@ namespace LCU.NET
             }
         }
 
-        public static void Playback(EventData[] events)
+        public static void Playback(EventData[] events, CancellationToken? cancelToken = null)
         {
             IsPlaying = true;
 
             new Thread(() =>
             {
-                TimeSpan lastTime = TimeSpan.Zero;
+                TimeSpan lastTime = events.First().TimeSinceStart; //Skip delay before first event
 
                 foreach (var item in events)
                 {
+                    if (cancelToken?.IsCancellationRequested == true)
+                        break;
+
                     Thread.Sleep(item.TimeSinceStart.Subtract(lastTime));
                     lastTime = item.TimeSinceStart;
 
@@ -114,6 +117,8 @@ namespace LCU.NET
 
                     HandleEvent(item.JsonEvent);
                 }
+
+                IsPlaying = false;
             }).Start();
         }
 
