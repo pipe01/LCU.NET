@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Authentication;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using WebSocketSharp;
 
@@ -29,6 +30,8 @@ namespace LCU.NET
         public static bool DumpToDebug { get; set; }
 
         public static bool DebugMode { get; set; }
+
+        public static bool IsPlaying { get; private set; }
 
         public delegate void MessageHandlerDelegate<T>(EventType eventType, T data);
         
@@ -94,10 +97,33 @@ namespace LCU.NET
             }
         }
 
+        public static void Playback(EventData[] events)
+        {
+            IsPlaying = true;
+
+            new Thread(() =>
+            {
+                TimeSpan lastTime = TimeSpan.Zero;
+
+                foreach (var item in events)
+                {
+                    Thread.Sleep(item.TimeSinceStart.Subtract(lastTime));
+                    lastTime = item.TimeSinceStart;
+
+                    Debug.WriteLine("{0} [{1}] {2}", item.TimeSinceStart, item.JsonEvent.EventType, item.JsonEvent.URI);
+
+                    HandleEvent(item.JsonEvent);
+                }
+            }).Start();
+        }
+
         private static void Socket_OnMessage(object sender, MessageEventArgs e)
         {
             if (DumpToDebug)
                 Debug.WriteLine(e.Data);
+
+            if (IsPlaying)
+                return;
 
             var ev = JsonApiEvent.Parse(e.Data);
             
