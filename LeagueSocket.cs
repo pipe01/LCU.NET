@@ -103,7 +103,7 @@ namespace LCU.NET
 
             new Thread(() =>
             {
-                TimeSpan lastTime = events.First().TimeSinceStart; //Skip delay before first event
+                TimeSpan lastTime = events[0].TimeSinceStart; //Skip delay before first event
 
                 foreach (var item in events)
                 {
