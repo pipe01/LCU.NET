@@ -28,9 +28,7 @@ namespace LCU.NET
         private static IDictionary<Regex, Tuple<Type, Delegate>> Subscribers = new Dictionary<Regex, Tuple<Type, Delegate>>();
 
         public static bool DumpToDebug { get; set; }
-
-        public static bool DebugMode { get; set; }
-
+        
         public static bool IsPlaying { get; private set; }
 
         public delegate void MessageHandlerDelegate<T>(EventType eventType, T data);
@@ -97,7 +95,7 @@ namespace LCU.NET
             }
         }
 
-        public static void Playback(EventData[] events, CancellationToken? cancelToken = null)
+        public static void Playback(EventData[] events, float speed = 1, CancellationToken? cancelToken = null)
         {
             IsPlaying = true;
 
@@ -110,7 +108,7 @@ namespace LCU.NET
                     if (cancelToken?.IsCancellationRequested == true)
                         break;
 
-                    Thread.Sleep(item.TimeSinceStart.Subtract(lastTime));
+                    Thread.Sleep((int)(item.TimeSinceStart.Subtract(lastTime).TotalMilliseconds / speed));
                     lastTime = item.TimeSinceStart;
 
                     Debug.WriteLine("{0} [{1}] {2}", item.TimeSinceStart, item.JsonEvent.EventType, item.JsonEvent.URI);
