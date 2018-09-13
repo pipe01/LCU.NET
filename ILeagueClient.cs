@@ -17,6 +17,7 @@ namespace LCU.NET
 
         IProxy Proxy { get; set; }
         IRestClient Client { get; }
+        ILeagueSocket Socket { get; }
 
         bool SmartInit();
         void BeginTryInit();

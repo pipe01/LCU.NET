@@ -21,14 +21,18 @@ namespace LCU.NET.Plugins.LoL
         Task<LolPerksPerkPageResource> PostPageAsync(LolPerksPerkPageResource page);
         Task<LolPerksPerkUIPerk[]> GetPerksAsync();
         Task<LolPerksPlayerInventory> GetInventoryAsync();
+        Task<Image> GetPerkImageAsync(LolPerksPerkUIPerk perk);
     }
 
     public class Perks : IPerks
     {
         private ILeagueClient Client;
-        public Perks(ILeagueClient client)
+        private IPluginManager PluginManager;
+
+        public Perks(ILeagueClient client, IPluginManager pluginManager)
         {
             this.Client = client;
+            this.PluginManager = pluginManager;
         }
 
         /// <summary>
@@ -92,7 +96,7 @@ namespace LCU.NET.Plugins.LoL
         /// Gets a rune's icon.
         /// </summary>
         /// <param name="perk">The rune. See <see cref="GetPerks"/>.</param>
-        public static Task<Image> GetPerkImageAsync(LolPerksPerkUIPerk perk) => Cache(async () =>
+        public Task<Image> GetPerkImageAsync(LolPerksPerkUIPerk perk) => Cache(async () =>
         {
             string[] split = perk.iconPath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
             string plugin = split[0];

@@ -1,5 +1,7 @@
 using LCU.NET.API_Models;
+using LCU.NET.Utils;
 using Newtonsoft.Json;
+using Ninject;
 using RestSharp;
 using RestSharp.Authenticators;
 using System;
@@ -19,13 +21,11 @@ namespace LCU.NET
 {
     public sealed class LeagueClient : ILeagueClient
     {
-        public static ILeagueClient Default { get; set; } = new LeagueClient();
-
         private static IDictionary<string, object> CacheDic = new Dictionary<string, object>();
 
         private string Token;
         private int Port;
-
+        
         private bool _Connected;
         public bool IsConnected
         {
@@ -38,21 +38,37 @@ namespace LCU.NET
         }
 
         public IProxy Proxy { get; set; }
-        public IRestClient Client { get; private set; }
+        public IRestClient Client { get; }
+        public ILeagueSocket Socket { get; }
+        private readonly IProcessResolver ProcessResolver;
 
         public event ConnectedChangedDelegate ConnectedChanged;
+
+        public static ILeagueClient CreateNew()
+        {
+            KernelBase kernel = new StandardKernel();
+            kernel.Bind<ILeagueClient>().To<LeagueClient>();
+            kernel.Bind<IRestClient>().To<RestClient>();
+            kernel.Bind<IProcessResolver>().To<ProcessResolver>();
+            kernel.Bind<ILeagueSocket>().To<LeagueSocket>();
+            kernel.Bind<ILSocket>().To<LWebSocket>();
+
+            return kernel.Get<ILeagueClient>();
+        }
+
+        public LeagueClient(IRestClient restClient, IProcessResolver processResolver, ILeagueSocket socket)
+        {
+            this.Client = restClient;
+            this.ProcessResolver = processResolver;
+            this.Socket = socket;
+        }
 
         /// <summary>
         /// Tries to get the LoL installation path and init. The client must be running.
         /// </summary>
         public bool SmartInit()
         {
-            return TryInitInner();
-        }
-
-        private bool TryInitInner()
-        {
-            var p = Process.GetProcessesByName("LeagueClient");
+            var p = ProcessResolver.GetProcessesByName("LeagueClient");
 
             if (p.Length > 0)
             {
@@ -84,12 +100,14 @@ namespace LCU.NET
             if (IsConnected)
                 return false;
 
-            var process = Process.GetProcessesByName("LeagueClientUx").FirstOrDefault();
+            Process[] processes = ProcessResolver.GetProcessesByName("LeagueClientUx");
 
-            if (process == null)
+            if (processes.Length == 0)
                 return false;
 
-            string cmdLine = GetCommandLine(process);
+            Process process = processes[0];
+
+            string cmdLine = ProcessResolver.GetCommandLine(process);
 
             if (cmdLine == null)
                 return false;
@@ -100,7 +118,7 @@ namespace LCU.NET
 
             process.Exited += (a, b) => Close();
 
-            Client = new RestClient("https://127.0.0.1:" + Port);
+            Client.BaseUrl = new Uri("https://127.0.0.1:" + Port);
             Client.Authenticator = new HttpBasicAuthenticator("riot", Token);
             Client.ConfigureWebRequest(o =>
             {
@@ -108,7 +126,7 @@ namespace LCU.NET
                 o.ServerCertificateValidationCallback = delegate { return true; };
             });
 
-            LeagueSocket.Init(Port, Token);
+            Socket.Connect(Port, Token);
 
             IsConnected = true;
 
@@ -118,19 +136,9 @@ namespace LCU.NET
         public void Close()
         {
             IsConnected = false;
-            LeagueSocket.Close();
+            Socket.Close();
         }
-
-        private static string GetCommandLine(Process process)
-        {
-            using (var searcher = new ManagementObjectSearcher(
-                $"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {process.Id}"))
-            using (var objects = searcher.Get())
-            {
-                return objects.Cast<ManagementBaseObject>().SingleOrDefault()?["CommandLine"]?.ToString();
-            }
-        }
-
+        
         private static RestRequest BuildRequest(string resource, Method method, object data, string[] fields = null)
         {
             var req = new RestRequest(resource, method);
@@ -186,54 +194,7 @@ namespace LCU.NET
             var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data, fields));
             CheckErrors(resp);
         }
-
-        internal static Task<T> MakeRequestAsync<T>(object data = null, [CallerMemberName] string methodName = "", params string[] args)
-        {
-            var apiAttr = GetCallingAPI(methodName);
-
-            Task<T> act() => Default.MakeRequestAsync<T>(ReplaceArgs(apiAttr.URI, args), apiAttr.Method, data);
-
-            return apiAttr.Cache ? Cache(act) : act();
-        }
-
-        internal static Task MakeRequestAsync(object data = null, [CallerMemberName] string methodName = "", params string[] args)
-        {
-            var apiAttr = GetCallingAPI(methodName);
-
-            return Default.MakeRequestAsync(ReplaceArgs(apiAttr.URI, args), apiAttr.Method, data);
-        }
-
-        private static string ReplaceArgs(string url, string[] args)
-        {
-            int i = 0;
-            return Regex.Replace(url, "{.*?}", o => o.Result(args[i++]));
-        }
-
-        private static APIMethodAttribute GetCallingAPI(string methodName, bool @throw = true)
-        {
-            var trace = new StackTrace();
-
-            for (int i = 0; i < trace.FrameCount; i++)
-            {
-                var method = trace.GetFrame(i).GetMethod();
-
-                if (method.Name == methodName)
-                {
-                    var attr = method.GetCustomAttribute<APIMethodAttribute>();
-
-                    if (attr != null)
-                    {
-                        return attr;
-                    }
-                }
-            }
-
-            if (@throw)
-                throw new InvalidOperationException("This method can only be called from a method with an APIMethodAttribute!");
-
-            return null;
-        }
-
+        
         private static void CheckErrors(IRestResponse response)
         {
             if (response.Content.Contains("\"errorCode\""))

@@ -12,7 +12,5 @@ namespace LCU.NET
     {
         bool Handle<T>(string url, Method method, object data, out T result);
         bool Handle(string url, Method method, object data);
-
-        JsonApiEvent Handle(JsonApiEvent @event);
     }
 }

@@ -5,18 +5,29 @@ using System.Threading.Tasks;
 
 namespace LCU.NET.Plugins
 {
-    public static class PluginManager
+    public interface IPluginManager
     {
-        private static IDictionary<string, byte[]> Cache = new Dictionary<string, byte[]>();
+        Task<byte[]> GetAssetAsync(string plugin, string path, bool cache = true);
+    }
 
-        public static async Task<byte[]> GetAssetAsync(string plugin, string path, bool cache = true)
+    public class PluginManager : IPluginManager
+    {
+        private ILeagueClient Client;
+        public PluginManager(ILeagueClient client)
+        {
+            this.Client = client;
+        }
+
+        private IDictionary<string, byte[]> Cache = new Dictionary<string, byte[]>();
+
+        public async Task<byte[]> GetAssetAsync(string plugin, string path, bool cache = true)
         {
             string uri = $"/{plugin}/assets/{path}";
 
             if (!cache || !Cache.TryGetValue(uri, out var data))
             {
                 var req = new RestRequest(uri, Method.GET);
-                var resp = await LeagueClient.Default.Client.ExecuteTaskAsync(req);
+                var resp = await Client.Client.ExecuteTaskAsync(req);
                 Cache[uri] = data = resp.RawBytes;
             }
 

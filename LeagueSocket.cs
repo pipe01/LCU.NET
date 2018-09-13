@@ -1,4 +1,5 @@
 ﻿using LCU.NET.API_Models;
+using LCU.NET.Utils;
 using LCU.NET.WAMP;
 using Newtonsoft.Json.Linq;
 using System;
@@ -22,68 +23,97 @@ namespace LCU.NET
         Delete
     }
 
-    public static class LeagueSocket
+    public delegate void MessageHandlerDelegate<T>(EventType eventType, T data);
+
+    public interface ILeagueSocket
     {
-        private static WebSocket Socket;
-        private static IDictionary<Regex, Tuple<Type, Delegate>> Subscribers = new Dictionary<Regex, Tuple<Type, Delegate>>();
+        event EventHandler<MessageReceivedEventArgs> MessageReceived;
+        event Action Closed;
 
-        public static bool DumpToDebug { get; set; }
-        
-        public static bool IsPlaying { get; private set; }
+        void Connect(int port, string password);
+        void Close();
 
-        public delegate void MessageHandlerDelegate<T>(EventType eventType, T data);
-        
-        internal static void Init(int port, string password)
+        void Subscribe<T>(string path, MessageHandlerDelegate<T> action);
+        void Subscribe<T>(Regex regex, MessageHandlerDelegate<T> action);
+        void Unsubscribe(string path);
+        void Unsubscribe(Regex regex);
+    }
+
+    public class LeagueSocket : ILeagueSocket
+    {
+        private readonly ILSocket Socket;
+        private readonly IDictionary<Regex, Tuple<Type, Delegate>> Subscribers = new Dictionary<Regex, Tuple<Type, Delegate>>();
+
+        public bool DumpToDebug { get; set; }
+        public bool IsPlaying { get; private set; }
+
+        public event EventHandler<MessageReceivedEventArgs> MessageReceived;
+        public event Action Closed;
+
+        public LeagueSocket(ILSocket socket)
         {
             if (File.Exists("log.txt"))
                 File.Delete("log.txt");
 
-            Socket = new WebSocket($"wss://127.0.0.1:{port}/", "wamp");
-            Socket.SetCredentials("riot", password, true);
-            Socket.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
-            Socket.SslConfiguration.ServerCertificateValidationCallback = delegate { return true; };
-            Socket.OnMessage += Socket_OnMessage;
-            Socket.OnClose += Socket_OnClose;
-            Socket.Connect();
-            Socket.Send("[5, \"OnJsonApiEvent\"]");
+            Socket = socket;
+            socket.Closed += () => Closed?.Invoke();
+            socket.MessageReceived += Socket_MessageReceived;
 
             Debug.WriteLine("WebSocket connected");
         }
-        
-        private static void Socket_OnClose(object sender, CloseEventArgs e)
+
+        public void Connect(int port, string password)
         {
-            LeagueClient.Default.Close();
+            Socket.Init(port, password);
         }
 
-        internal static void Close()
+        private void Socket_MessageReceived(string message)
+        {
+            if (DumpToDebug)
+                Debug.WriteLine(message);
+
+            if (IsPlaying)
+                return;
+
+            var ev = JsonApiEvent.Parse(message);
+
+            if (!ev.Equals(default(JsonApiEvent)))
+            {
+                bool subscribed = Subscribers.Any(o => o.Key.IsMatch(ev.URI));
+
+                var args = new MessageReceivedEventArgs(subscribed);
+                MessageReceived?.Invoke(this, args);
+
+                if (args.Handled)
+                    return;
+
+                HandleEvent(ev);
+            }
+        }
+
+        public void Close()
         {
             Socket.Close();
-            Socket = null;
         }
 
         private static Regex BuildRegex(string path) => new Regex($"^{Regex.Escape(path)}$");
 
-        public static void Subscribe<T>(string path, MessageHandlerDelegate<T> action)
+        public void Subscribe<T>(string path, MessageHandlerDelegate<T> action)
         {
             Subscribe(BuildRegex(path), action);
         }
         
-        public static void Subscribe<T>(Regex regex, MessageHandlerDelegate<T> action)
+        public void Subscribe<T>(Regex regex, MessageHandlerDelegate<T> action)
         {
             Subscribers.Add(regex, new Tuple<Type, Delegate>(typeof(T), action));
         }
-
-        public static void SubscribeRaw(Action<JsonApiEvent> handler)
-        {
-            Subscribers.Add(new Regex(".*"), new Tuple<Type, Delegate>(typeof(JsonApiEvent), handler));
-        }
-
-        public static void Unsubscribe(string path)
+        
+        public void Unsubscribe(string path)
         {
             Unsubscribe(BuildRegex(path));
         }
 
-        public static void Unsubscribe(Regex regex)
+        public void Unsubscribe(Regex regex)
         {
             if (Subscribers.TryGetValue(regex, out var v))
             {
@@ -95,7 +125,7 @@ namespace LCU.NET
             }
         }
 
-        public static void Playback(EventData[] events, float speed = 1, CancellationToken? cancelToken = null)
+        public void Playback(EventData[] events, float speed = 1, CancellationToken? cancelToken = null)
         {
             IsPlaying = true;
 
@@ -119,27 +149,8 @@ namespace LCU.NET
                 IsPlaying = false;
             }).Start();
         }
-
-        private static void Socket_OnMessage(object sender, MessageEventArgs e)
-        {
-            if (DumpToDebug)
-                Debug.WriteLine(e.Data);
-
-            if (IsPlaying)
-                return;
-
-            var ev = JsonApiEvent.Parse(e.Data);
-            
-            if (!ev.Equals(default(JsonApiEvent)))
-            {
-                if (LeagueClient.Default.Proxy != null)
-                    ev = LeagueClient.Default.Proxy.Handle(ev);
-
-                HandleEvent(ev);
-            }
-        }
-
-        public static void HandleEvent(JsonApiEvent @event)
+        
+        private void HandleEvent(JsonApiEvent @event)
         {
             foreach (var item in Subscribers.Where(o => o.Key.IsMatch(@event.URI)))
             {
