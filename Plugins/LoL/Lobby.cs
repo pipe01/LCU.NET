@@ -5,37 +5,47 @@ using static LCU.NET.LeagueClient;
 
 namespace LCU.NET.Plugins.LoL
 {
-    public static class Lobby
+    public interface ILobby
+    {
+        Task PostCustomBotAsync(LolLobbyLobbyBotParams parameters);
+        Task<LolLobbyLobbyDto> GetLobbyAsync();
+        Task<LolLobbyLobbyDto> PostLobbyAsync(LolLobbyLobbyChangeGameDto lobbyChange);
+        Task DeleteLobbyAsync();
+    }
+
+    public class Lobby : ILobby
     {
         public const string Endpoint = "/lol-lobby/v2/lobby";
 
+        private ILeagueClient Client;
+        internal Lobby(ILeagueClient client)
+        {
+            this.Client = client;
+        }
+        
         /// <summary>
         /// Adds a bot to a custom game lobby.
         /// </summary>
-        [APIMethod("/lol-lobby/v1/lobby/custom/bots", Method.POST)]
-        public static Task PostCustomBotAsync(LolLobbyLobbyBotParams parameters)
-            => MakeRequestAsync(parameters);
+        public Task PostCustomBotAsync(LolLobbyLobbyBotParams parameters)
+            => Client.MakeRequestAsync("/lol-lobby/v1/lobby/custom/bots", Method.POST, parameters);
         
         /// <summary>
         /// Gets the current lobby.
         /// </summary>
-        [APIMethod(Endpoint, Method.GET)]
-        public static Task<LolLobbyLobbyDto> GetLobbyAsync()
-            => MakeRequestAsync<LolLobbyLobbyDto>();
+        public Task<LolLobbyLobbyDto> GetLobbyAsync()
+            => Client.MakeRequestAsync<LolLobbyLobbyDto>(Endpoint, Method.GET);
         
         /// <summary>
         /// Creates a new lobby or changes the current one.
         /// </summary>
         /// <param name="lobbyChange">The lobby data.</param>
-        [APIMethod(Endpoint, Method.POST)]
-        public static Task<LolLobbyLobbyDto> PostLobbyAsync(LolLobbyLobbyChangeGameDto lobbyChange)
-            => MakeRequestAsync<LolLobbyLobbyDto>(lobbyChange);
+        public Task<LolLobbyLobbyDto> PostLobbyAsync(LolLobbyLobbyChangeGameDto lobbyChange)
+            => Client.MakeRequestAsync<LolLobbyLobbyDto>(Endpoint, Method.POST, lobbyChange);
         
         /// <summary>
         /// Exits the current lobby.
         /// </summary>
-        [APIMethod(Endpoint, Method.DELETE)]
-        public static Task DeleteLobbyAsync()
-            => MakeRequestAsync();
+        public Task DeleteLobbyAsync()
+            => Client.MakeRequestAsync(Endpoint, Method.DELETE);
     }
 }

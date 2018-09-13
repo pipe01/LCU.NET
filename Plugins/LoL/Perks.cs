@@ -10,67 +10,83 @@ using static LCU.NET.LeagueClient;
 
 namespace LCU.NET.Plugins.LoL
 {
-    public static class Perks
+    public interface IPerks
     {
+        Task<LolPerksPerkPageResource> GetCurrentPageAsync();
+        Task PutCurrentPageAsync(int id);
+        Task<LolPerksPerkPageResource[]> GetPagesAsync();
+        Task DeletePageAsync(int id);
+        Task<LolPerksPerkPageResource> GetPageAsync(int id);
+        Task<LolPerksPerkPageResource> PutPageAsync(int id, LolPerksPerkPageResource page);
+        Task<LolPerksPerkPageResource> PostPageAsync(LolPerksPerkPageResource page);
+        Task<LolPerksPerkUIPerk[]> GetPerksAsync();
+        Task<LolPerksPlayerInventory> GetInventoryAsync();
+    }
+
+    public class Perks : IPerks
+    {
+        private ILeagueClient Client;
+        internal Perks(ILeagueClient client)
+        {
+            this.Client = client;
+        }
+
         /// <summary>
         /// Returns the current runes page.
         /// </summary>
-        [APIMethod("/lol-perks/v1/currentpage", Method.GET)]
-        public static Task<LolPerksPerkPageResource> GetCurrentPageAsync()
-            => MakeRequestAsync<LolPerksPerkPageResource>();
+        public Task<LolPerksPerkPageResource> GetCurrentPageAsync()
+            => Client.MakeRequestAsync<LolPerksPerkPageResource>("/lol-perks/v1/currentpage", Method.GET);
 
         /// <summary>
         /// Sets the current rune page.
         /// </summary>
         /// <param name="id">The new page's ID.</param>
-        [APIMethod("/lol-perks/v1/currentpage", Method.PUT)]
-        public static Task PutCurrentPageAsync(int id)
-            => MakeRequestAsync(id);
+        public Task PutCurrentPageAsync(int id)
+            => Client.MakeRequestAsync("/lol-perks/v1/currentpage", Method.PUT, id);
 
         /// <summary>
         /// Gets all the user's rune pages, including default ones.
         /// </summary>
-        [APIMethod("/lol-perks/v1/pages", Method.GET)]
-        public static async Task<LolPerksPerkPageResource[]> GetPagesAsync()
-            => (await MakeRequestAsync<List<LolPerksPerkPageResource>>().ConfigureAwait(false)).ToArray();
+        public async Task<LolPerksPerkPageResource[]> GetPagesAsync()
+            => (await Client.MakeRequestAsync<List<LolPerksPerkPageResource>>("/lol-perks/v1/pages", Method.GET).ConfigureAwait(false)).ToArray();
 
         /// <summary>
         /// Deletes a rune page by ID.
         /// </summary>
         /// <param name="id">The page's ID.</param>
-        [APIMethod("/lol-perks/v1/pages/{id}", Method.DELETE)]
-        public static Task DeletePageAsync(int id)
-            => MakeRequestAsync(args: id.ToString());
+        public Task DeletePageAsync(int id)
+            => Client.MakeRequestAsync($"/lol-perks/v1/pages/{id}", Method.DELETE);
 
         /// <summary>
         /// Gets a rune page by ID.
         /// </summary>
         /// <param name="id">The page's ID.</param>
-        public static Task<LolPerksPerkPageResource> GetPageAsync(int id)
-            => Default.MakeRequestAsync<LolPerksPerkPageResource>("/lol-perks/v1/pages/" + id, Method.GET);
+        public Task<LolPerksPerkPageResource> GetPageAsync(int id)
+            => Client.MakeRequestAsync<LolPerksPerkPageResource>($"/lol-perks/v1/pages/{id}", Method.GET);
 
         /// <summary>
         /// Updates a rune page.
         /// </summary>
         /// <param name="id">The page's ID.</param>
         /// <param name="page">The new page.</param>
-        public static Task<LolPerksPerkPageResource> PutPageAsync(int id, LolPerksPerkPageResource page)
-            => Default.MakeRequestAsync<LolPerksPerkPageResource>("/lol-perks/v1/pages/" + id, Method.PUT, page);
+        public Task<LolPerksPerkPageResource> PutPageAsync(int id, LolPerksPerkPageResource page)
+            => Client.MakeRequestAsync<LolPerksPerkPageResource>($"/lol-perks/v1/pages/{id}", Method.PUT, page);
 
         /// <summary>
         /// Creates a new rune page.
         /// </summary>
         /// <param name="page">The new page.</param>
-        [APIMethod("/lol-perks/v1/pages", Method.POST)]
-        public static Task<LolPerksPerkPageResource> PostPageAsync(LolPerksPerkPageResource page)
-            => MakeRequestAsync<LolPerksPerkPageResource>(page);
+        public Task<LolPerksPerkPageResource> PostPageAsync(LolPerksPerkPageResource page)
+            => Client.MakeRequestAsync<LolPerksPerkPageResource>("/lol-perks/v1/pages", Method.POST, page);
 
         /// <summary>
         /// Gets a list of all the runes in LoL.
         /// </summary>
-        [APIMethod("/lol-perks/v1/perks", Method.GET, Cache = true)]
-        public static async Task<LolPerksPerkUIPerk[]> GetPerksAsync()
-            => (await MakeRequestAsync<List<LolPerksPerkUIPerk>>().ConfigureAwait(false)).ToArray();
+        public async Task<LolPerksPerkUIPerk[]> GetPerksAsync()
+            => (await Client.MakeRequestAsync<List<LolPerksPerkUIPerk>>("/lol-perks/v1/perks", Method.GET)).ToArray();
+        
+        public Task<LolPerksPlayerInventory> GetInventoryAsync()
+            => Client.MakeRequestAsync<LolPerksPlayerInventory>("/lol-perks/v1/inventory", Method.GET);
 
         /// <summary>
         /// Gets a rune's icon.
@@ -89,8 +105,5 @@ namespace LCU.NET.Plugins.LoL
                 return Image.FromStream(mem);
             }
         });
-
-        [APIMethod("/lol-perks/v1/inventory", Method.GET)]
-        public static Task<LolPerksPlayerInventory> GetInventoryAsync() => MakeRequestAsync<LolPerksPlayerInventory>();
     }
 }

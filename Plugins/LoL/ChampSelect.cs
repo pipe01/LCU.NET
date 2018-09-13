@@ -1,40 +1,49 @@
 ﻿using LCU.NET.API_Models;
 using RestSharp;
 using System.Threading.Tasks;
-using static LCU.NET.LeagueClient;
 
 namespace LCU.NET.Plugins.LoL
 {
-    public static class ChampSelect
+    public interface IChampSelect
     {
+        Task<LolChampSelectChampSelectSession> GetSessionAsync();
+        Task PatchMySelectionAsync(LolChampSelectChampSelectMySelection selection);
+        Task<LolChampSelectChampSelectTimer> GetTimerAsync();
+        Task<int> GetCurrentChampion();
+        Task PatchActionById(LolChampSelectChampSelectAction action, int id);
+        Task<LolChampSelectChampSelectPickableChampions> GetPickableChampions();
+        Task<LolChampSelectChampSelectBannableChampions> GetBannableChampions();
+    }
+
+    public class ChampSelect : IChampSelect
+    {
+        private ILeagueClient Client;
+        internal ChampSelect(ILeagueClient client)
+        {
+            this.Client = client;
+        }
+
         public const string Endpoint = "/lol-champ-select/v1/session";
-
-        [APIMethod(Endpoint, Method.GET)]
-        public static Task<LolChampSelectChampSelectSession> GetSessionAsync()
-            => MakeRequestAsync<LolChampSelectChampSelectSession>();
         
-        [APIMethod(Endpoint + "/my-selection", Method.PATCH)]
-        public static Task PatchMySelectionAsync(LolChampSelectChampSelectMySelection selection)
-            => MakeRequestAsync(selection);
+        public Task<LolChampSelectChampSelectSession> GetSessionAsync()
+            => Client.MakeRequestAsync<LolChampSelectChampSelectSession>(Endpoint, Method.GET);
         
-        [APIMethod(Endpoint + "/timer", Method.GET)]
-        public static Task<LolChampSelectChampSelectTimer> GetTimerAsync()
-            => MakeRequestAsync<LolChampSelectChampSelectTimer>();
-
-        [APIMethod("/lol-champ-select/v1/current-champion", Method.GET)]
-        public static Task<int> GetCurrentChampion()
-            => MakeRequestAsync<int>();
-
-        [APIMethod(Endpoint + "/actions/{id}", Method.PATCH)]
-        public static Task PatchActionById(LolChampSelectChampSelectAction action, int id)
-            => MakeRequestAsync(action, args: id.ToString());
-
-        [APIMethod("/lol-champ-select/v1/pickable-champions", Method.GET)]
-        public static Task<LolChampSelectChampSelectPickableChampions> GetPickableChampions()
-            => MakeRequestAsync<LolChampSelectChampSelectPickableChampions>();
-
-        [APIMethod("/lol-champ-select/v1/bannable-champions", Method.GET)]
-        public static Task<LolChampSelectChampSelectBannableChampions> GetBannableChampions()
-            => MakeRequestAsync<LolChampSelectChampSelectBannableChampions>();
+        public Task PatchMySelectionAsync(LolChampSelectChampSelectMySelection selection)
+            => Client.MakeRequestAsync(Endpoint + "/my-selection", Method.PATCH, selection);
+        
+        public Task<LolChampSelectChampSelectTimer> GetTimerAsync()
+            => Client.MakeRequestAsync<LolChampSelectChampSelectTimer>(Endpoint + "/timer", Method.GET);
+        
+        public Task<int> GetCurrentChampion()
+            => Client.MakeRequestAsync<int>("/lol-champ-select/v1/current-champion", Method.GET);
+        
+        public Task PatchActionById(LolChampSelectChampSelectAction action, int id)
+            => Client.MakeRequestAsync(Endpoint + $"/actions/{id}", Method.PATCH, action);
+        
+        public Task<LolChampSelectChampSelectPickableChampions> GetPickableChampions()
+            => Client.MakeRequestAsync<LolChampSelectChampSelectPickableChampions>("/lol-champ-select/v1/pickable-champions", Method.GET);
+        
+        public Task<LolChampSelectChampSelectBannableChampions> GetBannableChampions()
+            => Client.MakeRequestAsync<LolChampSelectChampSelectBannableChampions>("/lol-champ-select/v1/bannable-champions", Method.GET);
     }
 }

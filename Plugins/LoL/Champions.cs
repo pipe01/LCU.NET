@@ -1,17 +1,22 @@
 ﻿using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using static LCU.NET.LeagueClient;
 
 namespace LCU.NET.Plugins.LoL
 {
-    public static class Champions
+    public interface IChampions
     {
-        [APIMethod("/lol-champions/v1/owned-champions-minimal", Method.GET)]
-        public static Task<LolChampionsCollectionsChampionMinimal[]> GetOwnedChampionsMinimal()
-            => MakeRequestAsync<LolChampionsCollectionsChampionMinimal[]>();
+        Task<LolChampionsCollectionsChampionMinimal[]> GetOwnedChampionsMinimal();
+    }
+
+    public class Champions : IChampions
+    {
+        private ILeagueClient Client;
+        internal Champions(ILeagueClient client)
+        {
+            this.Client = client;
+        }
+        
+        public Task<LolChampionsCollectionsChampionMinimal[]> GetOwnedChampionsMinimal()
+            => Client.MakeRequestAsync<LolChampionsCollectionsChampionMinimal[]>("/lol-champions/v1/owned-champions-minimal", Method.GET);
     }
 }

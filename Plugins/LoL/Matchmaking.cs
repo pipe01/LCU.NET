@@ -8,20 +8,30 @@ using static LCU.NET.LeagueClient;
 
 namespace LCU.NET.Plugins.LoL
 {
-    public static class Matchmaking
+    public interface IMatchmaking
+    {
+        Task<LolMatchmakingMatchmakingReadyCheckResource> GetReadyCheck();
+        Task PostReadyCheckAccept();
+        Task PostReadyCheckDecline();
+    }
+
+    public class Matchmaking : IMatchmaking
     {
         public const string ReadyCheckEndpoint = "/lol-matchmaking/v1/ready-check";
 
-        [APIMethod(ReadyCheckEndpoint, Method.GET)]
-        public static Task<LolMatchmakingMatchmakingReadyCheckResource> GetReadyCheck()
-            => MakeRequestAsync<LolMatchmakingMatchmakingReadyCheckResource>();
+        private ILeagueClient Client;
+        internal Matchmaking(ILeagueClient client)
+        {
+            this.Client = client;
+        }
 
-        [APIMethod(ReadyCheckEndpoint + "/accept", Method.POST)]
-        public static Task PostReadyCheckAccept()
-            => MakeRequestAsync();
-
-        [APIMethod(ReadyCheckEndpoint + "/decline", Method.POST)]
-        public static Task PostReadyCheckDecline()
-            => MakeRequestAsync();
+        public Task<LolMatchmakingMatchmakingReadyCheckResource> GetReadyCheck()
+            => Client.MakeRequestAsync<LolMatchmakingMatchmakingReadyCheckResource>(ReadyCheckEndpoint, Method.GET);
+        
+        public Task PostReadyCheckAccept()
+            => Client.MakeRequestAsync(ReadyCheckEndpoint + "/accept", Method.POST);
+        
+        public Task PostReadyCheckDecline()
+            => Client.MakeRequestAsync(ReadyCheckEndpoint + "/decline", Method.POST);
     }
 }

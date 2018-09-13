@@ -4,22 +4,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static LCU.NET.LeagueClient;
 
 namespace LCU.NET.Plugins.LoL
 {
-    public static class ItemSets
+    public interface IItemsSets
     {
-        [APIMethod("/lol-item-sets/v1/item-sets/{summonerId}/sets", Method.GET)]
-        public static Task<LolItemSetsItemSets> GetItemSets(int summonerId)
-            => MakeRequestAsync<LolItemSetsItemSets>(args: summonerId.ToString());
+        Task<LolItemSetsItemSets> GetItemSets(int summonerId);
+        Task PostItemSet(int summonerId, LolItemSetsItemSet itemSet);
+        Task PutItemSets(int summonerId, LolItemSetsItemSets itemSets);
+    }
 
-        [APIMethod("/lol-item-sets/v1/item-sets/{summonerId}/sets", Method.POST)]
-        public static Task PostItemSet(int summonerId, LolItemSetsItemSet itemSet)
-            => MakeRequestAsync(itemSet, args: summonerId.ToString());
-
-        [APIMethod("/lol-item-sets/v1/item-sets/{summonerId}/sets", Method.PUT)]
-        public static Task PutItemSets(int summonerId, LolItemSetsItemSets itemSets)
-            => MakeRequestAsync(itemSets, args: summonerId.ToString());
+    public class ItemSets : IItemsSets
+    {
+        private ILeagueClient Client;
+        internal ItemSets(ILeagueClient client)
+        {
+            this.Client = client;
+        }
+        
+        public Task<LolItemSetsItemSets> GetItemSets(int summonerId)
+            => Client.MakeRequestAsync<LolItemSetsItemSets>("/lol-item-sets/v1/item-sets/{summonerId}/sets", Method.GET);
+        
+        public Task PostItemSet(int summonerId, LolItemSetsItemSet itemSet)
+            => Client.MakeRequestAsync($"/lol-item-sets/v1/item-sets/{summonerId}/sets", Method.POST);
+        
+        public Task PutItemSets(int summonerId, LolItemSetsItemSets itemSets)
+            => Client.MakeRequestAsync($"/lol-item-sets/v1/item-sets/{summonerId}/sets", Method.PUT, itemSets);
     }
 }

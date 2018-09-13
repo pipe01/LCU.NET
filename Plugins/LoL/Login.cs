@@ -5,20 +5,31 @@ using static LCU.NET.LeagueClient;
 
 namespace LCU.NET.Plugins.LoL
 {
-    public static class Login
+    public interface ILogin
+    {
+        Task DeleteSessionAsync();
+        Task<LolLoginLoginSession> GetSessionAsync();
+        Task<LolLoginLoginSession> PostSessionAsync(string username, string password);
+    }
+
+    public class Login : ILogin
     {
         public const string Endpoint = "/lol-login/v1/session";
 
-        [APIMethod(Endpoint, Method.DELETE)]
-        public static Task DeleteSessionAsync()
-            => MakeRequestAsync();
+        private ILeagueClient Client;
+        internal Login(ILeagueClient client)
+        {
+            this.Client = client;
+        }
         
-        [APIMethod(Endpoint, Method.GET)]
-        public static Task<LolLoginLoginSession> GetSessionAsync()
-            => MakeRequestAsync<LolLoginLoginSession>();
+        public Task DeleteSessionAsync()
+            => Client.MakeRequestAsync(Endpoint, Method.DELETE);
         
-        [APIMethod(Endpoint, Method.POST)]
-        public static Task<LolLoginLoginSession> PostSessionAsync(string username, string password)
-            => MakeRequestAsync<LolLoginLoginSession>(new LolLoginUsernameAndPassword { username = username, password = password });
+        public Task<LolLoginLoginSession> GetSessionAsync()
+            => Client.MakeRequestAsync<LolLoginLoginSession>(Endpoint, Method.GET);
+        
+        public Task<LolLoginLoginSession> PostSessionAsync(string username, string password)
+            => Client.MakeRequestAsync<LolLoginLoginSession>(Endpoint, Method.POST, 
+                new LolLoginUsernameAndPassword { username = username, password = password });
     }
 }
