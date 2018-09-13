@@ -30,6 +30,8 @@ namespace LCU.NET
         event EventHandler<MessageReceivedEventArgs> MessageReceived;
         event Action Closed;
 
+        bool DumpToDebug { get; set; }
+
         void Connect(int port, string password);
         void Close();
 
@@ -81,7 +83,7 @@ namespace LCU.NET
             {
                 bool subscribed = Subscribers.Any(o => o.Key.IsMatch(ev.URI));
 
-                var args = new MessageReceivedEventArgs(subscribed);
+                var args = new MessageReceivedEventArgs(ev, message, subscribed);
                 MessageReceived?.Invoke(this, args);
 
                 if (args.Handled)

@@ -18,10 +18,9 @@ namespace LCU.NET
         IProxy Proxy { get; set; }
         IRestClient Client { get; }
         ILeagueSocket Socket { get; }
-
-        bool SmartInit();
-        void BeginTryInit();
-        bool Init();
+        
+        void BeginTryInit(InitializeMethod method = InitializeMethod.CommandLine, int interval = 500);
+        bool Init(InitializeMethod method = InitializeMethod.CommandLine);
         void Close();
 
         Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null, params string[] fields);

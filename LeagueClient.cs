@@ -62,32 +62,17 @@ namespace LCU.NET
             this.ProcessResolver = processResolver;
             this.Socket = socket;
         }
-
-        /// <summary>
-        /// Tries to get the LoL installation path and init. The client must be running.
-        /// </summary>
-        public bool SmartInit()
-        {
-            var p = ProcessResolver.GetProcessesByName("LeagueClient");
-
-            if (p.Length > 0)
-            {
-                return Init();
-            }
-
-            return false;
-        }
-
+        
         /// <summary>
         /// Begins to look for the LoL client and inits when detected.
         /// </summary>
-        public void BeginTryInit()
+        public void BeginTryInit(InitializeMethod method = InitializeMethod.CommandLine, int interval = 500)
         {
             new Thread(() =>
             {
-                while (!SmartInit())
+                while (!Init(method))
                 {
-                    Thread.Sleep(500);
+                    Thread.Sleep(interval);
                 }
             })
             {
@@ -95,28 +80,13 @@ namespace LCU.NET
             }.Start();
         }
 
-        public bool Init()
+        public bool Init(InitializeMethod method = InitializeMethod.CommandLine)
         {
             if (IsConnected)
                 return false;
-
-            Process[] processes = ProcessResolver.GetProcessesByName("LeagueClientUx");
-
-            if (processes.Length == 0)
+            
+            if (!GetClientInfo(method, out Port, out Token, out var p))
                 return false;
-
-            Process process = processes[0];
-
-            string cmdLine = ProcessResolver.GetCommandLine(process);
-
-            if (cmdLine == null)
-                return false;
-
-            string portStr = Regex.Match(cmdLine, @"(?<=--app-port=)\d+").Value;
-            Port = int.Parse(portStr);
-            Token = Regex.Match(cmdLine, "(?<=--remoting-auth-token=).*?(?=\")").Value;
-
-            process.Exited += (a, b) => Close();
 
             Client.BaseUrl = new Uri("https://127.0.0.1:" + Port);
             Client.Authenticator = new HttpBasicAuthenticator("riot", Token);
@@ -131,6 +101,57 @@ namespace LCU.NET
             IsConnected = true;
 
             return true;
+        }
+
+        private bool GetClientInfo(InitializeMethod method, out int port, out string token, out Process proc)
+        {
+            if (method == InitializeMethod.CommandLine)
+            {
+                Process[] processes = ProcessResolver.GetProcessesByName("LeagueClientUx");
+
+                if (processes.Length == 0)
+                    goto exit;
+
+                Process process = processes[0];
+
+                string cmdLine = ProcessResolver.GetCommandLine(process);
+
+                if (cmdLine == null)
+                    goto exit;
+                
+                port = int.Parse(Regex.Match(cmdLine, @"(?<=--app-port=)\d+").Value);
+                token = Regex.Match(cmdLine, "(?<=--remoting-auth-token=).*?(?=\")").Value;
+                proc = process;
+
+                return true;
+            }
+            else if (method == InitializeMethod.Lockfile)
+            {
+                var p = Process.GetProcessesByName("LeagueClient");
+
+                if (p.Length == 0)
+                    goto exit;
+
+                string lockFilePath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(p[0].MainModule.FileName), "../../../../../../lockfile"));
+
+                string lockFile;
+
+                using (var stream = File.Open(lockFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    lockFile = new StreamReader(stream).ReadToEnd();
+
+                string[] parts = lockFile.Split(':');
+                port = int.Parse(parts[2]);
+                token = parts[3];
+                proc = p[0];
+
+                return true;
+            }
+
+exit:
+            port = 0;
+            token = null;
+            proc = null;
+            return false;
         }
 
         public void Close()
