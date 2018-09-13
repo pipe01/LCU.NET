@@ -11,7 +11,7 @@ namespace LCU.NET.Plugins.LoL
     public class Champions : IChampions
     {
         private ILeagueClient Client;
-        internal Champions(ILeagueClient client)
+        public Champions(ILeagueClient client)
         {
             this.Client = client;
         }

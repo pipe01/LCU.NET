@@ -17,7 +17,7 @@ namespace LCU.NET.Plugins.LoL
     public class ItemSets : IItemsSets
     {
         private ILeagueClient Client;
-        internal ItemSets(ILeagueClient client)
+        public ItemSets(ILeagueClient client)
         {
             this.Client = client;
         }

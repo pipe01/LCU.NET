@@ -18,7 +18,7 @@ namespace LCU.NET.Plugins.LoL
         public const string Endpoint = "/lol-lobby/v2/lobby";
 
         private ILeagueClient Client;
-        internal Lobby(ILeagueClient client)
+        public Lobby(ILeagueClient client)
         {
             this.Client = client;
         }

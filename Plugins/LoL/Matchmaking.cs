@@ -20,7 +20,7 @@ namespace LCU.NET.Plugins.LoL
         public const string ReadyCheckEndpoint = "/lol-matchmaking/v1/ready-check";
 
         private ILeagueClient Client;
-        internal Matchmaking(ILeagueClient client)
+        public Matchmaking(ILeagueClient client)
         {
             this.Client = client;
         }

@@ -26,7 +26,7 @@ namespace LCU.NET.Plugins.LoL
     public class Perks : IPerks
     {
         private ILeagueClient Client;
-        internal Perks(ILeagueClient client)
+        public Perks(ILeagueClient client)
         {
             this.Client = client;
         }

@@ -17,7 +17,7 @@ namespace LCU.NET.Plugins.LoL
         public const string Endpoint = "/lol-login/v1/session";
 
         private ILeagueClient Client;
-        internal Login(ILeagueClient client)
+        public Login(ILeagueClient client)
         {
             this.Client = client;
         }

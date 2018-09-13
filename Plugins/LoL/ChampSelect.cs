@@ -18,7 +18,7 @@ namespace LCU.NET.Plugins.LoL
     public class ChampSelect : IChampSelect
     {
         private ILeagueClient Client;
-        internal ChampSelect(ILeagueClient client)
+        public ChampSelect(ILeagueClient client)
         {
             this.Client = client;
         }

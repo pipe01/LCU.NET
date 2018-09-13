@@ -21,33 +21,40 @@ namespace LCU.NET
 
     public class LoL : ILoL
     {
-        private KernelBase Kernel = new StandardKernel();
-
-        public LoL(ILeagueClient client)
+        private static KernelBase Kernel;
+        
+        public static ILoL Instance(ILeagueClient client)
         {
-            Kernel.Bind<ILeagueClient>().ToConstant(client);
-            Kernel.Bind<IChampions>().To<Champions>();
-            Kernel.Bind<IChampSelect>().To<ChampSelect>();
-            Kernel.Bind<IItemsSets>().To<ItemSets>();
-            Kernel.Bind<ILobby>().To<Lobby>();
-            Kernel.Bind<ILogin>().To<Login>();
-            Kernel.Bind<IMatchmaking>().To<Matchmaking>();
-            Kernel.Bind<IPerks>().To<Perks>();
+            if (Kernel == null)
+            {
+                Kernel = new StandardKernel();
+                Kernel.Bind<ILoL>().To<LoL>();
+                Kernel.Bind<ILeagueClient>().ToConstant(client);
+                Kernel.Bind<IChampions>().To<Champions>();
+                Kernel.Bind<IChampSelect>().To<ChampSelect>();
+                Kernel.Bind<IItemsSets>().To<ItemSets>();
+                Kernel.Bind<ILobby>().To<Lobby>();
+                Kernel.Bind<ILogin>().To<Login>();
+                Kernel.Bind<IMatchmaking>().To<Matchmaking>();
+                Kernel.Bind<IPerks>().To<Perks>();
+            }
+
+            return Kernel.Get<ILoL>();
         }
 
         [Inject]
-        public IChampions Champions { get; }
+        public IChampions Champions { get; set; }
         [Inject]
-        public IChampSelect ChampSelect { get; }
+        public IChampSelect ChampSelect { get; set; }
         [Inject]
-        public IItemsSets ItemSets { get; }
+        public IItemsSets ItemSets { get; set; }
         [Inject]
-        public ILobby Lobby { get; }
+        public ILobby Lobby { get; set; }
         [Inject]
-        public ILogin Login { get; }
+        public ILogin Login { get; set; }
         [Inject]
-        public IMatchmaking Matchmaking { get; }
+        public IMatchmaking Matchmaking { get; set; }
         [Inject]
-        public IPerks Perks { get; }
+        public IPerks Perks { get; set; }
     }
 }
