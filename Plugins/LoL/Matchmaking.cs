@@ -13,11 +13,15 @@ namespace LCU.NET.Plugins.LoL
         Task<LolMatchmakingMatchmakingReadyCheckResource> GetReadyCheck();
         Task PostReadyCheckAccept();
         Task PostReadyCheckDecline();
+        Task DeleteSearch();
+        Task<LolMatchmakingMatchmakingSearchResource> GetSearch();
+        Task PostSearch();
     }
 
     public class Matchmaking : IMatchmaking
     {
         public const string ReadyCheckEndpoint = "/lol-matchmaking/v1/ready-check";
+        public const string SearchEndpoint = "/lol-matchmaking/v1/search";
 
         private ILeagueClient Client;
         public Matchmaking(ILeagueClient client)
@@ -33,5 +37,20 @@ namespace LCU.NET.Plugins.LoL
         
         public Task PostReadyCheckDecline()
             => Client.MakeRequestAsync(ReadyCheckEndpoint + "/decline", Method.POST);
+
+        /// <summary>
+        /// Cancels matchmaking search.
+        /// </summary>
+        public Task DeleteSearch()
+            => Client.MakeRequestAsync(SearchEndpoint, Method.DELETE);
+
+        public Task<LolMatchmakingMatchmakingSearchResource> GetSearch()
+            => Client.MakeRequestAsync<LolMatchmakingMatchmakingSearchResource>(SearchEndpoint, Method.GET);
+
+        /// <summary>
+        /// Begins matchmaking search.
+        /// </summary>
+        public Task PostSearch()
+            => Client.MakeRequestAsync(SearchEndpoint, Method.POST);
     }
 }

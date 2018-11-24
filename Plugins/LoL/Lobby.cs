@@ -11,11 +11,20 @@ namespace LCU.NET.Plugins.LoL
         Task<LolLobbyLobbyDto> GetLobbyAsync();
         Task<LolLobbyLobbyDto> PostLobbyAsync(LolLobbyLobbyChangeGameDto lobbyChange);
         Task DeleteLobbyAsync();
+        Task<LolLobbyLobbyParticipantDto[]> GetMembers();
+        Task<LolLobbyLobbyInvitationDto[]> GetInvitations();
+        Task<LolLobbyLobbyInvitationDto[]> PostInvitations(LolLobbyLobbyInvitationDto[] invitations);
+        Task PostMatchmakingSearch();
+        Task DeleteMatchmakingSearch();
+        Task<LolLobbyLobbyMatchmakingSearchResource> GetSearchState();
     }
 
     public class Lobby : ILobby
     {
         public const string Endpoint = "/lol-lobby/v2/lobby";
+        public const string MembersEndpoint = Endpoint + "/members";
+        public const string InvitationsEndpoint = Endpoint + "/invitations";
+        public const string MatchmakingEndpoint = Endpoint + "/matchmaking";
 
         private ILeagueClient Client;
         public Lobby(ILeagueClient client)
@@ -47,5 +56,33 @@ namespace LCU.NET.Plugins.LoL
         /// </summary>
         public Task DeleteLobbyAsync()
             => Client.MakeRequestAsync(Endpoint, Method.DELETE);
+
+        /// <summary>
+        /// Gets the members of the current lobby.
+        /// </summary>
+        public Task<LolLobbyLobbyParticipantDto[]> GetMembers()
+            => Client.MakeRequestAsync<LolLobbyLobbyParticipantDto[]>(MembersEndpoint, Method.GET);
+
+        /// <summary>
+        /// Gets the invitations of the current lobby.
+        /// </summary>
+        public Task<LolLobbyLobbyInvitationDto[]> GetInvitations()
+            => Client.MakeRequestAsync<LolLobbyLobbyInvitationDto[]>(InvitationsEndpoint, Method.GET);
+
+        /// <summary>
+        /// Sends one or more invitations.
+        /// </summary>
+        /// <param name="invitations">The invitations to send</param>
+        public Task<LolLobbyLobbyInvitationDto[]> PostInvitations(LolLobbyLobbyInvitationDto[] invitations)
+            => Client.MakeRequestAsync<LolLobbyLobbyInvitationDto[]>(InvitationsEndpoint, Method.POST, invitations);
+
+        public Task PostMatchmakingSearch()
+            => Client.MakeRequestAsync(MatchmakingEndpoint + "/search", Method.POST);
+
+        public Task DeleteMatchmakingSearch()
+            => Client.MakeRequestAsync(MatchmakingEndpoint + "/search", Method.DELETE);
+
+        public Task<LolLobbyLobbyMatchmakingSearchResource> GetSearchState()
+            => Client.MakeRequestAsync<LolLobbyLobbyMatchmakingSearchResource>(MatchmakingEndpoint + "/search-state", Method.GET);
     }
 }

@@ -23,7 +23,7 @@ namespace LCU.NET
         bool Init(InitializeMethod method = InitializeMethod.CommandLine);
         void Close();
 
-        Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null, params string[] fields);
-        Task MakeRequestAsync(string resource, Method method, object data = null, params string[] fields);
+        Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null, Action<IRestRequest> modifyRequest = null, params string[] fields);
+        Task MakeRequestAsync(string resource, Method method, object data = null, Action<IRestRequest> modifyRequest = null, params string[] fields);
     }
 }

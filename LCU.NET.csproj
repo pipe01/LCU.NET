@@ -43,8 +43,8 @@
     <Reference Include="Ninject, Version=3.3.4.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
       <HintPath>packages\Ninject.3.3.4\lib\net45\Ninject.dll</HintPath>
     </Reference>
-    <Reference Include="RestSharp, Version=106.3.1.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\RestSharp.106.3.1\lib\net452\RestSharp.dll</HintPath>
+    <Reference Include="RestSharp, Version=106.5.4.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
+      <HintPath>..\packages\RestSharp.106.5.4\lib\net452\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -78,6 +78,10 @@
     <Compile Include="API Models\LolChampSelectChampSelectSession.cs" />
     <Compile Include="API Models\LolChampSelectChampSelectTimer.cs" />
     <Compile Include="API Models\LolChampSelectChampSelectTradeContract.cs" />
+    <Compile Include="API Models\LolChatFriendResource.cs" />
+    <Compile Include="API Models\LolGameQueuesQueue.cs" />
+    <Compile Include="API Models\LolGameQueuesQueueGameTypeConfig.cs" />
+    <Compile Include="API Models\LolGameQueuesQueueReward.cs" />
     <Compile Include="API Models\LolItemSetsItemSet.cs" />
     <Compile Include="API Models\LolItemSetsItemSetBlock.cs" />
     <Compile Include="API Models\LolItemSetsItemSetItem.cs" />
@@ -91,6 +95,9 @@
     <Compile Include="API Models\LolLobbyLobbyDto.cs" />
     <Compile Include="API Models\LolLobbyLobbyGameConfigDto.cs" />
     <Compile Include="API Models\LolLobbyLobbyInvitationDto.cs" />
+    <Compile Include="API Models\LolLobbyLobbyMatchmakingLowPriorityDataResource.cs" />
+    <Compile Include="API Models\LolLobbyLobbyMatchmakingSearchErrorResource.cs" />
+    <Compile Include="API Models\LolLobbyLobbyMatchmakingSearchResource.cs" />
     <Compile Include="API Models\LolLobbyLobbyMember.cs" />
     <Compile Include="API Models\LolLobbyLobbyParticipantDto.cs" />
     <Compile Include="API Models\LolLobbyLobbyPositionPreferences.cs" />
@@ -99,10 +106,18 @@
     <Compile Include="API Models\LolLoginLoginQueue.cs" />
     <Compile Include="API Models\LolLoginLoginSession.cs" />
     <Compile Include="API Models\LolLoginUsernameAndPassword.cs" />
+    <Compile Include="API Models\LolMapsMaps.cs" />
+    <Compile Include="API Models\LolMapsTutorialCard.cs" />
+    <Compile Include="API Models\LolMatchmakingMatchmakingDodgeData.cs" />
+    <Compile Include="API Models\LolMatchmakingMatchmakingLowPriorityData.cs" />
     <Compile Include="API Models\LolMatchmakingMatchmakingReadyCheckResource.cs" />
+    <Compile Include="API Models\LolMatchmakingMatchmakingSearchErrorResource.cs" />
+    <Compile Include="API Models\LolMatchmakingMatchmakingSearchResource.cs" />
     <Compile Include="API Models\LolPerksPerkPageResource.cs" />
     <Compile Include="API Models\LolPerksPerkUIPerk.cs" />
     <Compile Include="API Models\LolPerksPlayerInventory.cs" />
+    <Compile Include="API Models\LolSummonerSummoner.cs" />
+    <Compile Include="API Models\LolSummonerSummonerRerollPoints.cs" />
     <Compile Include="API Models\RegionLocale.cs" />
     <Compile Include="APIErrorException.cs" />
     <Compile Include="APIMethodAttribute.cs" />
@@ -117,12 +132,17 @@
     <Compile Include="NoActiveDelegateException.cs" />
     <Compile Include="Plugins\LoL\Champions.cs" />
     <Compile Include="Plugins\LoL\ChampSelect.cs" />
+    <Compile Include="Plugins\LoL\Chat.cs" />
+    <Compile Include="Plugins\LoL\GameQueues.cs" />
     <Compile Include="Plugins\LoL\ItemSets.cs" />
     <Compile Include="Plugins\LoL\Lobby.cs" />
     <Compile Include="Plugins\LoL\Login.cs" />
+    <Compile Include="Plugins\LoL\Maps.cs" />
     <Compile Include="Plugins\LoL\Matchmaking.cs" />
     <Compile Include="Plugins\LoL\Perks.cs" />
+    <Compile Include="Plugins\LoL\Summoner.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
+    <Compile Include="Plugins\ProcessControl.cs" />
     <Compile Include="Plugins\RiotClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\LWebSocket.cs" />

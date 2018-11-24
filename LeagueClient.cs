@@ -6,6 +6,7 @@ using RestSharp;
 using RestSharp.Authenticators;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
@@ -61,6 +62,7 @@ namespace LCU.NET
             this.Client = restClient;
             this.ProcessResolver = processResolver;
             this.Socket = socket;
+            this.Socket.Client = this;
         }
         
         /// <summary>
@@ -132,7 +134,19 @@ namespace LCU.NET
                 if (p.Length == 0)
                     goto exit;
 
-                string lockFilePath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(p[0].MainModule.FileName), "../../../../../../lockfile"));
+                string lockFilePath;
+
+                try
+                {
+                    lockFilePath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(p[0].MainModule.FileName), "../../../../../../lockfile"));
+                }
+                catch
+                {
+                    goto exit;
+                }
+
+                if (!File.Exists(lockFilePath))
+                    goto exit;
 
                 string lockFile;
 
@@ -187,7 +201,7 @@ exit:
             return req;
         }
 
-        public async Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null, params string[] fields)
+        public async Task<T> MakeRequestAsync<T>(string resource, Method method, object data = null, Action<IRestRequest> modifyRequest = null, params string[] fields)
         {
             if (Proxy != null && Proxy.Handle<T>(resource, method, data, out var ret))
                 return ret;
@@ -195,8 +209,16 @@ exit:
             if (!IsConnected)
                 return default;
 
-            var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data, fields));
+            var req = BuildRequest(resource, method, data, fields);
+            modifyRequest?.Invoke(req);
+
+            var resp = await Client.ExecuteTaskAsync(req);
             CheckErrors(resp);
+
+            //"spell1Id":     18446744073709552000
+            //ulong.MaxValue: 18446744073709551615
+            //y u do dis to me
+            string content = resp.Content.Replace("18446744073709552000", "-1");
 
             return JsonConvert.DeserializeObject<T>(resp.Content, new JsonSerializerSettings
             {
@@ -204,7 +226,7 @@ exit:
             });
         }
 
-        public async Task MakeRequestAsync(string resource, Method method, object data = null, params string[] fields)
+        public async Task MakeRequestAsync(string resource, Method method, object data = null, Action<IRestRequest> modifyRequest = null, params string[] fields)
         {
             if (Proxy?.Handle(resource, method, data) == true)
                 return;
@@ -212,7 +234,10 @@ exit:
             if (!IsConnected)
                 return;
 
-            var resp = await Client.ExecuteTaskAsync(BuildRequest(resource, method, data, fields));
+            var req = BuildRequest(resource, method, data, fields);
+            modifyRequest?.Invoke(req);
+
+            var resp = await Client.ExecuteTaskAsync(req);
             CheckErrors(resp);
         }
         

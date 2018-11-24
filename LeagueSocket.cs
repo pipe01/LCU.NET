@@ -2,6 +2,8 @@
 using LCU.NET.Utils;
 using LCU.NET.WAMP;
 using Newtonsoft.Json.Linq;
+using Ninject;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,20 +33,50 @@ namespace LCU.NET
         event Action Closed;
 
         bool DumpToDebug { get; set; }
+        ILeagueClient Client { get; set; }
 
         void Connect(int port, string password);
         void Close();
 
+        void Subscribe<T>(object owner, string path, MessageHandlerDelegate<T> action);
         void Subscribe<T>(string path, MessageHandlerDelegate<T> action);
+        Task SubscribeAndUpdate<T>(object owner, string path, MessageHandlerDelegate<T> action);
+        Task SubscribeAndUpdate<T>(string path, MessageHandlerDelegate<T> action);
+        void Subscribe<T>(object owner, Regex regex, MessageHandlerDelegate<T> action);
         void Subscribe<T>(Regex regex, MessageHandlerDelegate<T> action);
+
+        void UnsubscribeAll(object withOwner);
         void Unsubscribe(string path);
         void Unsubscribe(Regex regex);
+
+        void HandleEvent(JsonApiEvent @event);
     }
 
     public class LeagueSocket : ILeagueSocket
     {
+        private struct Subscription
+        {
+            public object OwnerObject { get; }
+            public Type ModelType { get; }
+            public Delegate Callback { get; }
+
+            public Subscription(object ownerObject, Type modelType, Delegate callback) : this()
+            {
+                this.OwnerObject = ownerObject;
+                this.ModelType = modelType;
+                this.Callback = callback;
+            }
+
+            public Subscription(Type modelType, Delegate callback) : this(null, modelType, callback)
+            {
+            }
+        }
+
         private readonly ILSocket Socket;
-        private readonly IDictionary<Regex, Tuple<Type, Delegate>> Subscribers = new Dictionary<Regex, Tuple<Type, Delegate>>();
+        
+        private readonly IDictionary<Regex, Subscription> Subscribers = new Dictionary<Regex, Subscription>();
+        
+        public ILeagueClient Client { get; set; }
 
         public bool DumpToDebug { get; set; }
         public bool IsPlaying { get; private set; }
@@ -52,21 +84,22 @@ namespace LCU.NET
         public event EventHandler<MessageReceivedEventArgs> MessageReceived;
         public event Action Closed;
 
+
         public LeagueSocket(ILSocket socket)
         {
             if (File.Exists("log.txt"))
                 File.Delete("log.txt");
 
-            Socket = socket;
+            this.Socket = socket;
             socket.Closed += () => Closed?.Invoke();
             socket.MessageReceived += Socket_MessageReceived;
-
-            Debug.WriteLine("WebSocket connected");
         }
 
         public void Connect(int port, string password)
         {
             Socket.Init(port, password);
+
+            Debug.WriteLine("WebSocket connected");
         }
 
         private void Socket_MessageReceived(string message)
@@ -81,7 +114,7 @@ namespace LCU.NET
 
             if (!ev.Equals(default(JsonApiEvent)))
             {
-                bool subscribed = Subscribers.Any(o => o.Key.IsMatch(ev.URI));
+                bool subscribed = Subscribers.ToArray().Any(o => o.Key.IsMatch(ev.URI));
 
                 var args = new MessageReceivedEventArgs(ev, message, subscribed);
                 MessageReceived?.Invoke(this, args);
@@ -101,15 +134,55 @@ namespace LCU.NET
         private static Regex BuildRegex(string path) => new Regex($"^{Regex.Escape(path)}$");
 
         public void Subscribe<T>(string path, MessageHandlerDelegate<T> action)
+            => Subscribe(null, path, action);
+
+        public void Subscribe<T>(object owner, string path, MessageHandlerDelegate<T> action)
         {
             Subscribe(BuildRegex(path), action);
         }
-        
-        public void Subscribe<T>(Regex regex, MessageHandlerDelegate<T> action)
+
+        public Task SubscribeAndUpdate<T>(string path, MessageHandlerDelegate<T> action)
+            => SubscribeAndUpdate(null, path, action);
+
+        public async Task SubscribeAndUpdate<T>(object owner, string path, MessageHandlerDelegate<T> action)
         {
-            Subscribers.Add(regex, new Tuple<Type, Delegate>(typeof(T), action));
+            Subscribe(owner, BuildRegex(path), action);
+            
+            T data = default;
+            bool success = true;
+
+            try
+            {
+                data = await Client.MakeRequestAsync<T>(path, Method.GET);
+            }
+            catch
+            {
+                success = false;
+            }
+
+            if (success)
+                action(EventType.Update, data);
+        }
+
+        public void Subscribe<T>(Regex regex, MessageHandlerDelegate<T> action)
+            => Subscribe(null, regex, action);
+
+        public void Subscribe<T>(object owner, Regex regex, MessageHandlerDelegate<T> action)
+        {
+            Subscribers.Add(regex, new Subscription(owner, typeof(T), action));
         }
         
+        public void UnsubscribeAll(object withOwner)
+        {
+            if (withOwner == null)
+                throw new ArgumentNullException(nameof(withOwner));
+
+            foreach (var item in Subscribers.Where(o => o.Value.OwnerObject == withOwner).ToArray())
+            {
+                Subscribers.Remove(item.Key);
+            }
+        }
+
         public void Unsubscribe(string path)
         {
             Unsubscribe(BuildRegex(path));
@@ -152,13 +225,13 @@ namespace LCU.NET
             }).Start();
         }
         
-        private void HandleEvent(JsonApiEvent @event)
+        public void HandleEvent(JsonApiEvent @event)
         {
-            foreach (var item in Subscribers.Where(o => o.Key.IsMatch(@event.URI)))
+            foreach (var item in Subscribers.ToArray().Where(o => o.Key.IsMatch(@event.URI)))
             {
-                if (item.Value.Item1 == typeof(JsonApiEvent))
+                if (item.Value.ModelType == typeof(JsonApiEvent))
                 {
-                    item.Value.Item2.DynamicInvoke(@event);
+                    item.Value.Callback.DynamicInvoke(@event);
                 }
                 else
                 {
@@ -166,7 +239,7 @@ namespace LCU.NET
 
                     try
                     {
-                        data = @event.GetData(item.Value.Item1);
+                        data = @event.GetData(item.Value.ModelType);
                     }
                     catch (InvalidCastException)
                     {
@@ -174,7 +247,7 @@ namespace LCU.NET
                         continue;
                     }
 
-                    item.Value.Item2.DynamicInvoke(@event.EventType, data);
+                    item.Value.Callback.DynamicInvoke(@event.EventType, data);
                 }
             }
         }

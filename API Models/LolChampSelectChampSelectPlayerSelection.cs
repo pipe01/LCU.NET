@@ -6,7 +6,6 @@ namespace LCU.NET.API_Models
         public int cellId { get; set; }
         public int championId { get; set; }
         public int championPickIntent { get; set; }
-        public string displayName { get; set; }
         public string playerType { get; set; }
         public int selectedSkinId { get; set; }
         public int spell1Id { get; set; }
