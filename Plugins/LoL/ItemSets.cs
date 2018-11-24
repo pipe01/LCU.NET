@@ -23,7 +23,7 @@ namespace LCU.NET.Plugins.LoL
         }
         
         public Task<LolItemSetsItemSets> GetItemSets(int summonerId)
-            => Client.MakeRequestAsync<LolItemSetsItemSets>("/lol-item-sets/v1/item-sets/{summonerId}/sets", Method.GET);
+            => Client.MakeRequestAsync<LolItemSetsItemSets>($"/lol-item-sets/v1/item-sets/{summonerId}/sets", Method.GET);
         
         public Task PostItemSet(int summonerId, LolItemSetsItemSet itemSet)
             => Client.MakeRequestAsync($"/lol-item-sets/v1/item-sets/{summonerId}/sets", Method.POST);
