@@ -13,7 +13,7 @@ namespace LCU.NET.Utils
         event Action Closed;
         event Action<string> MessageReceived;
 
-        void Init(int port, string password);
+        bool Init(int port, string password);
         void Close();
     }
 
@@ -24,7 +24,7 @@ namespace LCU.NET.Utils
         public event Action Closed;
         public event Action<string> MessageReceived;
 
-        public void Init(int port, string password)
+        public bool Init(int port, string password)
         {
             Socket = new WebSocket($"wss://127.0.0.1:{port}/", "wamp");
             Socket.SetCredentials("riot", password, true);
@@ -34,6 +34,8 @@ namespace LCU.NET.Utils
             Socket.OnClose += Socket_OnClose;
             Socket.Connect();
             Socket.Send("[5, \"OnJsonApiEvent\"]");
+
+            return Socket.IsAlive;
         }
 
         public void Close()

@@ -98,7 +98,10 @@ namespace LCU.NET
                 o.ServerCertificateValidationCallback = delegate { return true; };
             });
 
-            Socket.Connect(Port, Token);
+            if (!Socket.Connect(Port, Token))
+                return false;
+
+            Socket.Closed += () => Close();
 
             IsConnected = true;
 

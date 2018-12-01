@@ -35,7 +35,7 @@ namespace LCU.NET
         bool DumpToDebug { get; set; }
         ILeagueClient Client { get; set; }
 
-        void Connect(int port, string password);
+        bool Connect(int port, string password);
         void Close();
 
         void Subscribe<T>(object owner, string path, MessageHandlerDelegate<T> action);
@@ -95,11 +95,14 @@ namespace LCU.NET
             socket.MessageReceived += Socket_MessageReceived;
         }
 
-        public void Connect(int port, string password)
+        public bool Connect(int port, string password)
         {
-            Socket.Init(port, password);
+            var r = Socket.Init(port, password);
 
-            Debug.WriteLine("WebSocket connected");
+            if (r)
+                Debug.WriteLine("WebSocket connected");
+
+            return r;
         }
 
         private void Socket_MessageReceived(string message)
