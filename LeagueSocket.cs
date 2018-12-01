@@ -147,7 +147,10 @@ namespace LCU.NET
         public async Task SubscribeAndUpdate<T>(object owner, string path, MessageHandlerDelegate<T> action)
         {
             Subscribe(owner, BuildRegex(path), action);
-            
+
+            if (!Client.IsConnected)
+                return;
+
             T data = default;
             bool success = true;
 
@@ -213,7 +216,9 @@ namespace LCU.NET
                     if (cancelToken?.IsCancellationRequested == true)
                         break;
 
-                    Thread.Sleep((int)(item.TimeSinceStart.Subtract(lastTime).TotalMilliseconds / speed));
+                    if (speed > 0)
+                        Thread.Sleep((int)(item.TimeSinceStart.Subtract(lastTime).TotalMilliseconds / speed));
+
                     lastTime = item.TimeSinceStart;
 
                     Debug.WriteLine("{0} [{1}] {2}", item.TimeSinceStart, item.JsonEvent.EventType, item.JsonEvent.URI);
