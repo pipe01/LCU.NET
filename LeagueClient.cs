@@ -26,7 +26,8 @@ namespace LCU.NET
 
         private string Token;
         private int Port;
-        
+        private bool IsTryingToInit;
+
         private bool _Connected;
         public bool IsConnected
         {
@@ -70,12 +71,19 @@ namespace LCU.NET
         /// </summary>
         public void BeginTryInit(InitializeMethod method = InitializeMethod.CommandLine, int interval = 500)
         {
+            if (IsTryingToInit)
+                return;
+
+            IsTryingToInit = true;
+
             new Thread(() =>
             {
                 while (!Init(method))
                 {
                     Thread.Sleep(interval);
                 }
+
+                IsTryingToInit = false;
             })
             {
                 IsBackground = true
