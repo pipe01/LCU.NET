@@ -11,8 +11,8 @@ namespace LCU.NET.Plugins.LoL
         Task<LolChampSelectChampSelectTimer> GetTimerAsync();
         Task<int> GetCurrentChampion();
         Task PatchActionById(LolChampSelectChampSelectAction action, int id);
-        Task<LolChampSelectChampSelectPickableChampions> GetPickableChampions();
-        Task<LolChampSelectChampSelectBannableChampions> GetBannableChampions();
+        Task<int[]> GetPickableChampions();
+        Task<int[]> GetBannableChampions();
     }
 
     public class ChampSelect : IChampSelect
@@ -40,10 +40,10 @@ namespace LCU.NET.Plugins.LoL
         public Task PatchActionById(LolChampSelectChampSelectAction action, int id)
             => Client.MakeRequestAsync(Endpoint + $"/actions/{id}", Method.PATCH, action);
         
-        public Task<LolChampSelectChampSelectPickableChampions> GetPickableChampions()
-            => Client.MakeRequestAsync<LolChampSelectChampSelectPickableChampions>("/lol-champ-select/v1/pickable-champions", Method.GET);
+        public Task<int[]> GetPickableChampions()
+            => Client.MakeRequestAsync<int[]>("/lol-champ-select/v1/pickable-champion-ids", Method.GET);
         
-        public Task<LolChampSelectChampSelectBannableChampions> GetBannableChampions()
-            => Client.MakeRequestAsync<LolChampSelectChampSelectBannableChampions>("/lol-champ-select/v1/bannable-champions", Method.GET);
+        public Task<int[]> GetBannableChampions()
+            => Client.MakeRequestAsync<int[]>("/lol-champ-select/v1/bannable-champion-ids", Method.GET);
     }
 }

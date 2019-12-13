@@ -50,6 +50,8 @@ namespace LCU.NET
         void Unsubscribe(Regex regex);
 
         void HandleEvent(JsonApiEvent @event);
+
+        void Playback(EventData[] events, float speed = 1, CancellationToken? cancelToken = null);
     }
 
     public class LeagueSocket : ILeagueSocket
