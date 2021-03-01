@@ -1,8 +1,4 @@
 ﻿using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace LCU.NET.Plugins
@@ -15,7 +11,7 @@ namespace LCU.NET.Plugins
 
     public class ProcessControl : IProcessControl
     {
-        private ILeagueClient Client;
+        private readonly ILeagueClient Client;
         public ProcessControl(ILeagueClient client)
         {
             this.Client = client;

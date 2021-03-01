@@ -1,7 +1,6 @@
 ﻿using LCU.NET.API_Models;
 using RestSharp;
 using System.Threading.Tasks;
-using static LCU.NET.LeagueClient;
 
 namespace LCU.NET.Plugins.LoL
 {
@@ -26,7 +25,7 @@ namespace LCU.NET.Plugins.LoL
         public const string InvitationsEndpoint = Endpoint + "/invitations";
         public const string MatchmakingEndpoint = Endpoint + "/matchmaking";
 
-        private ILeagueClient Client;
+        private readonly ILeagueClient Client;
         public Lobby(ILeagueClient client)
         {
             this.Client = client;

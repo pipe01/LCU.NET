@@ -26,8 +26,8 @@ namespace LCU.NET.Plugins.LoL
 
     public class Perks : IPerks
     {
-        private ILeagueClient Client;
-        private IPluginManager PluginManager;
+        private readonly ILeagueClient Client;
+        private readonly IPluginManager PluginManager;
 
         public Perks(ILeagueClient client, IPluginManager pluginManager)
         {

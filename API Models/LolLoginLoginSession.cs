@@ -2,7 +2,7 @@ namespace LCU.NET.API_Models
 {
     public class LolLoginLoginSession
     {
-        public int accountId { get; set; }
+        public long accountId { get; set; }
         public bool connected { get; set; }
         public LolLoginLoginError error { get; set; }
         public object gasToken { get; set; }

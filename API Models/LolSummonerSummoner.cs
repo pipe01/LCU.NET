@@ -2,7 +2,7 @@ namespace LCU.NET
 {
     public class LolSummonerSummoner
     {
-        public int accountId { get; set; }
+        public long accountId { get; set; }
         public string displayName { get; set; }
         public string internalName { get; set; }
         public string lastSeasonHighestRank { get; set; }

@@ -1,8 +1,4 @@
 ﻿using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace LCU.NET.Plugins.LoL
@@ -16,7 +12,7 @@ namespace LCU.NET.Plugins.LoL
 
     public class ItemSets : IItemsSets
     {
-        private ILeagueClient Client;
+        private readonly ILeagueClient Client;
         public ItemSets(ILeagueClient client)
         {
             this.Client = client;
