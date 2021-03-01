@@ -1,10 +1,5 @@
 ﻿using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using static LCU.NET.LeagueClient;
 
 namespace LCU.NET.Plugins.LoL
 {
@@ -23,7 +18,7 @@ namespace LCU.NET.Plugins.LoL
         public const string ReadyCheckEndpoint = "/lol-matchmaking/v1/ready-check";
         public const string SearchEndpoint = "/lol-matchmaking/v1/search";
 
-        private ILeagueClient Client;
+        private readonly ILeagueClient Client;
         public Matchmaking(ILeagueClient client)
         {
             this.Client = client;

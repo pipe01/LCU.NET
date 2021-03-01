@@ -1,7 +1,6 @@
 ﻿using LCU.NET.API_Models;
 using RestSharp;
 using System.Threading.Tasks;
-using static LCU.NET.LeagueClient;
 
 namespace LCU.NET.Plugins
 {
@@ -15,7 +14,7 @@ namespace LCU.NET.Plugins
 
     public class RiotClient : IRiotClient
     {
-        private ILeagueClient Client;
+        private readonly ILeagueClient Client;
         public RiotClient(ILeagueClient client)
         {
             this.Client = client;

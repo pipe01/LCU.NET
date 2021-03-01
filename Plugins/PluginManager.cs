@@ -1,5 +1,4 @@
 using RestSharp;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,13 +11,13 @@ namespace LCU.NET.Plugins
 
     public class PluginManager : IPluginManager
     {
-        private ILeagueClient Client;
+        private readonly ILeagueClient Client;
         public PluginManager(ILeagueClient client)
         {
             this.Client = client;
         }
 
-        private IDictionary<string, byte[]> Cache = new Dictionary<string, byte[]>();
+        private readonly IDictionary<string, byte[]> Cache = new Dictionary<string, byte[]>();
 
         public async Task<byte[]> GetAssetAsync(string plugin, string path, bool cache = true)
         {

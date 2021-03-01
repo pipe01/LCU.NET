@@ -1,11 +1,6 @@
 ﻿using LCU.NET.Plugins;
 using LCU.NET.Plugins.LoL;
 using Ninject;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LCU.NET
 {
